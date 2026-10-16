@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "10 Mẫu Truy Vấn Raven Query Language (RQL)";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">10 Mẫu Truy Vấn Raven Query Language (RQL)</h2>
+            <p class="text-muted mb-0">Các câu truy vấn chuẩn hóa theo kịch bản nghiệp vụ của CustomerCareDB</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Quay lại Dashboard
+        </a>
+    </div>
+
+    <!-- Live RQL Runner -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-dark text-white py-3">
+            <h5 class="card-title mb-0"><i class="bi bi-terminal"></i> Trình Thử Nghiệm Truy Vấn RQL (Live Query Tester)</h5>
+        </div>
+        <div class="card-body">
+            <div class="input-group mb-3">
+                <input type="text" id="rqlInput" class="form-control font-monospace" value="from Customers" placeholder="Nhập câu truy vấn RQL tại đây..." />
+                <button class="btn btn-primary" type="button" id="btnRunRql" onclick="executeCurrentRql()">
+                    <i class="bi bi-play-fill"></i> Thực Thi Truy Vấn
+                </button>
+            </div>
+            <div id="queryResultContainer" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-success" id="resultCountBadge">0 kết quả</span>
+                    <small class="text-muted" id="queryTimeText"></small>
+                </div>
+                <pre class="bg-light p-3 rounded border font-monospace small" id="jsonResult" style="max-height: 350px; overflow-y: auto;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10 RQL Query Cards -->
+    <div class="row g-3">
+        @{
+            var queries = new[]
+            {
+                new { Id = 1, Name = "1. Liệt kê toàn bộ khách hàng", Rql = "from Customers", Desc = "Truy vấn toàn bộ danh sách khách hàng trong collection Customers kèm theo Embedded Address." },
+                new { Id = 2, Name = "2. Tìm kiếm khách hàng theo số điện thoại", Rql = "from Customers where Phone = '0901234567'", Desc = "Lọc khách hàng có số điện thoại chính xác." },
+                new { Id = 3, Name = "3. Tìm lịch hẹn theo CustomerId", Rql = "from Appointments where CustomerId = 'customers/001'", Desc = "Truy vấn tất cả lịch hẹn dịch vụ của một khách hàng cụ thể." },
+                new { Id = 4, Name = "4. Lọc lịch hẹn theo trạng thái", Rql = "from Appointments where Status = 'Completed'", Desc = "Tìm các lịch hẹn đã hoàn tất xử lý dịch vụ." },
+                new { Id = 5, Name = "5. Tìm lịch sử chăm sóc theo AppointmentId", Rql = "from ServiceHistories where AppointmentId = 'appointments/001'", Desc = "Truy xuất lịch sử thực hiện gắn liền với lịch hẹn gốc." },
+                new { Id = 6, Name = "6. Tìm lịch sử chăm sóc theo CustomerId", Rql = "from ServiceHistories where CustomerId = 'customers/001'", Desc = "Tra cứu toàn bộ lịch sử chăm sóc/bảo dưỡng của một khách hàng." },
+                new { Id = 7, Name = "7. Tìm lịch sử dịch vụ theo StaffId", Rql = "from ServiceHistories where StaffId = 'staffs/001'", Desc = "Tra cứu nhật ký công việc của kỹ thuật viên/nhân viên cụ thể." },
+                new { Id = 8, Name = "8. Tìm đánh giá theo điểm Rating", Rql = "from Feedbacks where Rating >= 4", Desc = "Lọc các đánh giá dịch vụ đạt chất lượng tốt (từ 4 đến 5 sao)." },
+                new { Id = 9, Name = "9. Sắp xếp lịch sử theo thời gian dịch vụ", Rql = "from ServiceHistories order by ServiceDate desc", Desc = "Sắp xếp lịch sử chăm sóc giảm dần theo thời gian thực tế." },
+                new { Id = 10, Name = "10. Sử dụng load để nạp thông tin liên kết (Join trong RQL)", Rql = "from Appointments as a load a.CustomerId as c select { AppointmentId: id(a), CustomerName: c.FullName, Phone: c.Phone, Date: a.AppointmentDate, Status: a.Status }", Desc = "Sử dụng từ khóa load trong RQL để truy xuất song song thông tin khách hàng mà không cần round-trip mạng bổ sung." }
+            };
+        }
+
+        @foreach (var q in queries)
+        {
+            <div class="col-md-6">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="fw-bold text-primary mb-0">@q.Name</h6>
+                            <button class="btn btn-sm btn-outline-primary" onclick="setAndExecuteRql('@q.Rql.Replace("'", "\\'")')">
+                                <i class="bi bi-play"></i> Thử ngay
+                            </button>
+                        </div>
+                        <p class="text-secondary small mb-2">@q.Desc</p>
+                        <div class="bg-light p-2 rounded border font-monospace small text-dark">
+                            <code>@q.Rql</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function setAndExecuteRql(query) {
+        document.getElementById('rqlInput').value = query;
+        executeCurrentRql();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function executeCurrentRql() {
+        const query = document.getElementById('rqlInput').value;
+        const container = document.getElementById('queryResultContainer');
+        const badge = document.getElementById('resultCountBadge');
+        const jsonPre = document.getElementById('jsonResult');
+        const timeText = document.getElementById('queryTimeText');
+
+        container.style.display = 'block';
+        jsonPre.textContent = 'Đang thực thi truy vấn tới RavenDB...';
+        badge.className = 'badge bg-warning';
+        badge.textContent = 'Đang tải...';
+
+        const startTime = performance.now();
+        try {
+            const response = await fetch(`/Diagnostic/ExecuteRql?query=${encodeURIComponent(query)}`);
+            const elapsed = Math.round(performance.now() - startTime);
+            const data = await response.json();
+
+            if (response.ok) {
+                badge.className = 'badge bg-success';
+                badge.textContent = `${data.count} bản ghi`;
+                timeText.textContent = `Thời gian phản hồi: ${elapsed}ms`;
+                jsonPre.textContent = JSON.stringify(data.results, null, 2);
+            } else {
+                badge.className = 'badge bg-danger';
+                badge.textContent = 'Lỗi truy vấn';
+                timeText.textContent = `Lỗi sau: ${elapsed}ms`;
+                jsonPre.textContent = `LỖI TỪ RAVENDB:\n${data.error}`;
+            }
+        } catch (err) {
+            badge.className = 'badge bg-danger';
+            badge.textContent = 'Lỗi mạng';
+            jsonPre.textContent = `LỖI KẾT NỐI:\n${err.message}`;
+        }
+    }
+</script>
