@@ -1,0 +1,255 @@
+@model CustomerCareRavenDB.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Customer Care Dashboard - RavenDB Foundation";
+}
+
+<div class="container-fluid py-4">
+    <!-- Header Banner -->
+    <div class="p-4 mb-4 bg-primary text-white rounded-3 shadow-sm">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 fw-bold mb-2">Trung Tâm Chăm Sóc Khách Hàng - RavenDB Foundation</h1>
+                <p class="lead mb-1">Dự án môn học NoSQL: Quản lý hồ sơ khách hàng & lịch sử chăm sóc khách hàng bằng RavenDB.</p>
+                <small class="opacity-75">Kiến trúc cơ sở dữ liệu và Data Layer nền tảng được phát triển bởi: <strong>Thanh</strong>.</small>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="@Model.StudioUrl" target="_blank" class="btn btn-warning btn-lg fw-semibold shadow-sm">
+                    <i class="bi bi-speedometer2"></i> Mở RavenDB Studio
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Infrastructure Status Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge @(Model.IsConnected ? "bg-success" : "bg-danger") me-2 p-2">
+                            @(Model.IsConnected ? "ĐÃ KẾT NỐI" : "MẤT KẾT NỐI")
+                        </span>
+                        <h6 class="card-subtitle text-muted mb-0">Trạng Thái RavenDB</h6>
+                    </div>
+                    <h5 class="card-title fw-bold text-dark">@Model.DatabaseName</h5>
+                    <p class="card-text text-secondary small mb-1"><strong>Server URL:</strong> @Model.RavenUrl</p>
+                    <p class="card-text text-secondary small mb-0"><strong>Phiên bản:</strong> @(Model.ServerVersion ?? "N/A")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-subtitle text-muted mb-2">Phân Công Trách Nhiệm Nhóm</h6>
+                    <ul class="list-unstyled mb-0 small">
+                        <li><span class="badge bg-primary">Thanh</span> <strong>Foundation:</strong> RavenDB Architecture, Models, Data Layer, RQL, Indexes & Tests</li>
+                        <li><span class="badge bg-secondary">Quốc</span> <strong>Module A:</strong> Nghiệp vụ Customers & Appointments</li>
+                        <li><span class="badge bg-secondary">Đạt</span> <strong>Module B:</strong> Nghiệp vụ Services, ServiceHistories & Feedbacks</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm text-center">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <h6 class="card-subtitle text-muted mb-2">Thao Tác Dữ Liệu</h6>
+                    <form asp-action="TriggerSeed" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                            <i class="bi bi-database-fill-add"></i> Nạp Dữ Liệu Mẫu (Seed)
+                        </button>
+                    </form>
+                    <a asp-action="RqlQueries" class="btn btn-outline-info btn-sm w-100">
+                        <i class="bi bi-search"></i> Xem 10 Truy Vấn RQL
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6 Collections Overview Cards -->
+    <h4 class="fw-bold mb-3 text-secondary"><i class="bi bi-folder2-open"></i> Thống Kê 6 Primary Collections</h4>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center bg-light">
+                <div class="card-body py-3">
+                    <h2 class="display-6 fw-bold text-primary mb-0">@Model.CustomersCount</h2>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Customers</span>
+                    <div class="text-muted small mt-1">Embedded Address</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center bg-light">
+                <div class="card-body py-3">
+                    <h2 class="display-6 fw-bold text-success mb-0">@Model.StaffsCount</h2>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Staffs</span>
+                    <div class="text-muted small mt-1">Nhân viên CSKH</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center bg-light">
+                <div class="card-body py-3">
+                    <h2 class="display-6 fw-bold text-info mb-0">@Model.ServicesCount</h2>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle">Services</span>
+                    <div class="text-muted small mt-1">Gói dịch vụ</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center bg-light">
+                <div class="card-body py-3">
+                    <h2 class="display-6 fw-bold text-warning mb-0">@Model.AppointmentsCount</h2>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Appointments</span>
+                    <div class="text-muted small mt-1">Lịch hẹn dịch vụ</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center bg-light">
+                <div class="card-body py-3">
+                    <h2 class="display-6 fw-bold text-danger mb-0">@Model.ServiceHistoriesCount</h2>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">ServiceHistories</span>
+                    <div class="text-muted small mt-1">Lịch sử chăm sóc</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <div class="card border-0 shadow-sm text-center bg-light">
+                <div class="card-body py-3">
+                    <h2 class="display-6 fw-bold text-secondary mb-0">@Model.FeedbacksCount</h2>
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Feedbacks</span>
+                    <div class="text-muted small mt-1">Đánh giá 1-5 sao</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coherent Workflow Demonstration -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="card-title fw-bold text-primary mb-0">
+                <i class="bi bi-diagram-3-fill"></i> Minh Họa Luồng Nghiệp Vụ Hoàn Chỉnh (Seeded Workflow)
+            </h5>
+            <small class="text-muted">Dữ liệu mẫu chuẩn được liên kết toàn vẹn qua Document References trong RavenDB</small>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center text-center g-2">
+                <div class="col-md-2">
+                    <div class="p-3 border rounded bg-white shadow-sm">
+                        <div class="badge bg-primary mb-1">Khách Hàng</div>
+                        <h6 class="fw-bold mb-0">customers/001</h6>
+                        <small class="text-muted">Nguyễn Văn An</small>
+                    </div>
+                </div>
+                <div class="col-md-1 d-none d-md-block text-muted fs-4">➔</div>
+                <div class="col-md-2">
+                    <div class="p-3 border rounded bg-white shadow-sm">
+                        <div class="badge bg-warning text-dark mb-1">Lịch Hẹn</div>
+                        <h6 class="fw-bold mb-0">appointments/001</h6>
+                        <small class="text-muted">01/02/2026 (Completed)</small>
+                    </div>
+                </div>
+                <div class="col-md-1 d-none d-md-block text-muted fs-4">➔</div>
+                <div class="col-md-2">
+                    <div class="p-3 border rounded bg-white shadow-sm">
+                        <div class="badge bg-danger mb-1">Thực Hiện Dịch Vụ</div>
+                        <h6 class="fw-bold mb-0">servicehistories/001</h6>
+                        <small class="text-muted">KTV: staffs/001</small>
+                    </div>
+                </div>
+                <div class="col-md-1 d-none d-md-block text-muted fs-4">➔</div>
+                <div class="col-md-3">
+                    <div class="p-3 border rounded bg-white shadow-sm">
+                        <div class="badge bg-secondary mb-1">Đánh Giá & Phản Hồi</div>
+                        <h6 class="fw-bold mb-0">feedbacks/001</h6>
+                        <span class="text-warning">★★★★★</span> (5/5 sao)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seeded Records Tables -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0">Khách Hàng (Customers - Embedded Address)</h6>
+                    <span class="badge bg-primary">@Model.RecentCustomers.Count</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Id</th>
+                                <th>Họ Tên</th>
+                                <th>Điện Thoại</th>
+                                <th>Địa Chỉ (Embedded)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.RecentCustomers)
+                            {
+                                <tr>
+                                    <td><code>@c.Id</code></td>
+                                    <td class="fw-semibold">@c.FullName</td>
+                                    <td>@c.Phone</td>
+                                    <td>@c.Address.ToString()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0">Lịch Sử Chăm Sóc (ServiceHistories)</h6>
+                    <span class="badge bg-danger">@Model.RecentHistories.Count</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Id</th>
+                                <th>Lịch Hẹn</th>
+                                <th>Ngày Thực Hiện</th>
+                                <th>Mô Tả & Kết Quả</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in Model.RecentHistories)
+                            {
+                                <tr>
+                                    <td><code>@h.Id</code></td>
+                                    <td><code>@h.AppointmentId</code></td>
+                                    <td>@h.ServiceDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@h.Result</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
