@@ -1,0 +1,36 @@
+## Visual Studio / .NET Core
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esults/
+.vs/
+.idea/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+
+## Secrets and certificates
+.env
+.env.*
+!.env.example
+*.pfx
+*.key
+*.snk
+*.cer
+*.crt
+
+## RavenDB Local Data / Logs
+RavenData/
+*.ravendb*
+logs/
+
+## OS generated files
+.DS_Store
+Thumbs.db
