@@ -1,0 +1,8 @@
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+}
+<nav class="module-tabline" aria-label="Chuyển nhanh giữa các module">
+    <a asp-controller="Services" asp-action="Index" class="@(controller == "Services" ? "active" : "")" aria-current="@(controller == "Services" ? "page" : null)"><i class="bi bi-grid me-1" aria-hidden="true"></i> Dịch vụ</a>
+    <a asp-controller="ServiceHistories" asp-action="Index" class="@(controller == "ServiceHistories" ? "active" : "")" aria-current="@(controller == "ServiceHistories" ? "page" : null)"><i class="bi bi-clock-history me-1" aria-hidden="true"></i> Lịch sử chăm sóc</a>
+    <a asp-controller="Feedbacks" asp-action="Index" class="@(controller == "Feedbacks" ? "active" : "")" aria-current="@(controller == "Feedbacks" ? "page" : null)"><i class="bi bi-star me-1" aria-hidden="true"></i> Phản hồi</a>
+</nav>

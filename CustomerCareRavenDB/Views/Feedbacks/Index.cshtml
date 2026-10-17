@@ -1,0 +1,29 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model IReadOnlyList<CustomerCareRavenDB.Models.Feedback>
+@{ ViewData["Title"] = "Quản lý phản hồi"; }
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Đánh giá / Phản hồi</h2><a class="btn btn-primary" asp-action="Create">Thêm phản hồi</a></div>
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+<form method="get" asp-action="Index" class="row g-2 mb-3">
+    <div class="col-md-5"><select name="customerId" class="form-select"><option value="">Tất cả khách hàng</option>
+    @foreach(var op in (IEnumerable<SelectListItem>)ViewBag.Customers) { <option value="@op.Value" selected="@(op.Value == (string?)ViewBag.CustomerId)">@op.Text</option> }
+    </select></div>
+    <div class="col-md-3"><select name="rating" class="form-select"><option value="">Tất cả số sao</option>
+    @for (int r=1;r<=5;r++) { <option value="@r" selected="@((int?)ViewBag.Rating == r)">@r sao</option> }
+    </select></div>
+    <div class="col-auto"><button type="submit" class="btn btn-outline-primary">Lọc</button></div>
+    <div class="col-auto"><a asp-action="Index" class="btn btn-outline-secondary">Bỏ lọc</a></div>
+</form>
+<div class="table-responsive bg-white rounded shadow-sm"><table class="table table-hover align-middle mb-0">
+<thead class="table-light"><tr><th>Khách hàng</th><th>Lịch hẹn</th><th>Điểm</th><th>Nhận xét</th><th>Ngày tạo (UTC)</th><th>Thao tác</th></tr></thead>
+<tbody>
+@foreach (var item in Model) { <tr>
+    <td><code>@item.CustomerId</code></td><td><code>@item.AppointmentId</code></td><td><span class="text-warning">@item.Rating ★</span></td><td>@item.Comment</td><td>@item.CreatedAt.ToString("dd/MM/yyyy")</td>
+    <td class="text-nowrap">
+    <a class="btn btn-sm btn-outline-info" href="@(Url.Action("Details", "Feedbacks") + "?id=" + Uri.EscapeDataString(item.Id))">Xem</a>
+    <a class="btn btn-sm btn-outline-warning" href="@(Url.Action("Edit", "Feedbacks") + "?id=" + Uri.EscapeDataString(item.Id))">Sửa</a>
+    <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xóa phản hồi này?');"><input type="hidden" name="id" value="@item.Id" /><button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button></form>
+    </td>
+</tr> }
+@if(Model.Count==0) { <tr><td colspan="6" class="text-center text-muted py-4">Không có phản hồi phù hợp.</td></tr> }
+</tbody></table></div>

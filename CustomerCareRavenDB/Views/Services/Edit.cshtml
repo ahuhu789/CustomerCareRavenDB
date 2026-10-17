@@ -1,0 +1,8 @@
+@model CustomerCareRavenDB.ViewModels.ServiceFormViewModel
+@{ ViewData["Title"] = "Sửa dịch vụ"; }
+<h2>Sửa dịch vụ</h2>
+<form asp-action="Edit" method="post" class="card card-body shadow-sm">
+    <input type="hidden" name="id" value="@ViewBag.DocumentId" />
+    <partial name="_Form" model="Model" />
+    <div><button type="submit" class="btn btn-primary">Lưu thay đổi</button> <a class="btn btn-outline-secondary" asp-action="Index">Quay lại</a></div>
+</form>

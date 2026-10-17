@@ -1,0 +1,11 @@
+@model CustomerCareRavenDB.Models.Feedback
+@{ ViewData["Title"] = "Chi tiết phản hồi"; }
+<h2>Chi tiết phản hồi</h2>
+<div class="card card-body shadow-sm"><dl class="row">
+    <dt class="col-sm-3">Mã document</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+    <dt class="col-sm-3">Khách hàng</dt><dd class="col-sm-9">@ViewBag.CustomerName (<code>@Model.CustomerId</code>)</dd>
+    <dt class="col-sm-3">Lịch hẹn</dt><dd class="col-sm-9"><code>@Model.AppointmentId</code></dd>
+    <dt class="col-sm-3">Đánh giá</dt><dd class="col-sm-9 text-warning">@Model.Rating ★ / 5 sao</dd>
+    <dt class="col-sm-3">Nhận xét</dt><dd class="col-sm-9">@Model.Comment</dd>
+    <dt class="col-sm-3">Ngày gửi (UTC)</dt><dd class="col-sm-9">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+</dl><div><a class="btn btn-warning" href="@(Url.Action("Edit", "Feedbacks") + "?id=" + Uri.EscapeDataString(Model.Id))">Sửa</a> <a asp-action="Index" class="btn btn-outline-secondary">Danh sách</a></div></div>

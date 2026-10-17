@@ -24,6 +24,11 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
+                            <a class="nav-link text-warning fw-semibold" href="http://127.0.0.1:8080/studio/index.html#databases/documents?&database=CustomerCareDB" target="_blank">
+                                <i class="bi bi-box-arrow-up-right me-1"></i> RavenDB Studio
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
                                 <i class="bi bi-speedometer2 me-1"></i> Dashboard
                             </a>
@@ -34,10 +39,23 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-warning fw-semibold" href="http://127.0.0.1:8080/studio/index.html#databases/documents?&database=CustomerCareDB" target="_blank">
-                                <i class="bi bi-box-arrow-up-right me-1"></i> RavenDB Studio
+                            <a class="nav-link" asp-area="" asp-controller="Services" asp-action="Index">
+                                <i class="bi bi-grid me-1"></i> Dịch vụ
                             </a>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="ServiceHistories" asp-action="Index">
+                                <i class="bi bi-clock-history me-1"></i> Lịch sử chăm sóc
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Feedbacks" asp-action="Index">
+                                <i class="bi bi-star me-1"></i> Phản hồi
+                            </a>
+                        </li>
+
                     </ul>
                     <span class="navbar-text text-white-50 small">
                         Database: <strong>CustomerCareDB</strong>
@@ -63,3 +81,114 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+
+
+
+@* @using Microsoft.AspNetCore.Mvc.Controllers
+@using Microsoft.AspNetCore.Mvc.Infrastructure
+@inject IActionDescriptorCollectionProvider ActionDescriptors
+@{
+    var currentController = (ViewContext.RouteData.Values["controller"]?.ToString() ?? "Home");
+    var currentAction = (ViewContext.RouteData.Values["action"]?.ToString() ?? "Index");
+    var controllers = ActionDescriptors.ActionDescriptors.Items
+        .OfType<ControllerActionDescriptor>()
+        .Select(a => a.ControllerName)
+        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    var customersAvailable = controllers.Contains("Customers");
+    var appointmentsAvailable = controllers.Contains("Appointments");
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CustomerCareRavenDB</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/modules.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/CustomerCareRavenDB.styles.css" asp-append-version="true" />
+</head>
+<body class="bg-body-tertiary">
+    <header class="cc-app-header sticky-top">
+        <!-- Giữ nguyên ngôn ngữ giao diện gốc: navbar tối, Bootstrap Icons, liên kết RQL và RavenDB Studio. -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary-subtle shadow-sm cc-main-navbar" aria-label="Điều hướng chính">
+            <div class="container-fluid px-3 px-lg-4">
+                <a class="navbar-brand fw-bold d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-hdd-network text-warning me-2 fs-4" aria-hidden="true"></i>
+                    <span>CustomerCare<span class="text-info-emphasis">RavenDB</span></span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#ccPrimaryNav" aria-controls="ccPrimaryNav" aria-expanded="false" aria-label="Mở hoặc đóng menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="ccPrimaryNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Home" && currentAction == "Index" ? "active fw-semibold" : "")" asp-controller="Home" asp-action="Index" aria-current="@(currentController == "Home" && currentAction == "Index" ? "page" : null)">
+                                <i class="bi bi-speedometer2 me-1" aria-hidden="true"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Home" && currentAction == "RqlQueries" ? "active fw-semibold" : "")" asp-controller="Home" asp-action="RqlQueries" aria-current="@(currentController == "Home" && currentAction == "RqlQueries" ? "page" : null)">
+                                <i class="bi bi-code-slash me-1" aria-hidden="true"></i> 10 Truy vấn RQL
+                            </a>
+                        </li>
+                        <li class="nav-item d-lg-none"><a class="nav-link" asp-controller="Services" asp-action="Index"><i class="bi bi-grid me-1"></i> Dịch vụ</a></li>
+                        <li class="nav-item d-lg-none"><a class="nav-link" asp-controller="ServiceHistories" asp-action="Index"><i class="bi bi-clock-history me-1"></i> Lịch sử chăm sóc</a></li>
+                        <li class="nav-item d-lg-none"><a class="nav-link" asp-controller="Feedbacks" asp-action="Index"><i class="bi bi-star me-1"></i> Phản hồi</a></li>
+                    </ul>
+                    <div class="d-flex align-items-lg-center gap-2 flex-column flex-lg-row pb-2 pb-lg-0">
+                        <span class="badge rounded-pill text-bg-secondary bg-opacity-25 border border-secondary-subtle fw-normal align-self-start align-self-lg-center px-3 py-2">
+                            <i class="bi bi-database-check me-1" aria-hidden="true"></i> CustomerCareDB
+                        </span>
+                        <a class="btn btn-warning btn-sm fw-semibold" href="http://127.0.0.1:8080/studio/index.html#databases/documents?&amp;database=CustomerCareDB" target="_blank" rel="noopener noreferrer">
+                            <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i> RavenDB Studio
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <!-- Menu nghiệp vụ xuất hiện trên tất cả View; Quốc thêm Controllers là menu tự kích hoạt. -->
+        <nav class="cc-section-navbar bg-white border-bottom shadow-sm" aria-label="Điều hướng các phân hệ">
+            <div class="container-fluid px-3 px-lg-4 d-flex align-items-center gap-2">
+                <span class="cc-nav-caption d-none d-xl-inline text-uppercase fw-semibold text-muted">Phân hệ</span>
+                <div class="cc-section-links d-flex align-items-center gap-1 py-2">
+                    @if (customersAvailable)
+                    {
+                        <a class="cc-section-link @(currentController == "Customers" ? "is-active" : "")" asp-controller="Customers" asp-action="Index" aria-current="@(currentController == "Customers" ? "page" : null)"><i class="bi bi-people me-1" aria-hidden="true"></i> Khách hàng</a>
+                    }
+                    else
+                    {
+                        <span class="cc-section-link cc-section-pending" title="Module Khách hàng sẽ khả dụng sau khi tích hợp phần của Quốc"><i class="bi bi-people me-1" aria-hidden="true"></i> Khách hàng <i class="bi bi-lock ms-1" aria-hidden="true"></i></span>
+                    }
+                    @if (appointmentsAvailable)
+                    {
+                        <a class="cc-section-link @(currentController == "Appointments" ? "is-active" : "")" asp-controller="Appointments" asp-action="Index" aria-current="@(currentController == "Appointments" ? "page" : null)"><i class="bi bi-calendar-check me-1" aria-hidden="true"></i> Lịch hẹn</a>
+                    }
+                    else
+                    {
+                        <span class="cc-section-link cc-section-pending" title="Module Lịch hẹn sẽ khả dụng sau khi tích hợp phần của Quốc"><i class="bi bi-calendar-check me-1" aria-hidden="true"></i> Lịch hẹn <i class="bi bi-lock ms-1" aria-hidden="true"></i></span>
+                    }
+                    <a class="cc-section-link @(currentController == "Services" ? "is-active" : "")" asp-controller="Services" asp-action="Index" aria-current="@(currentController == "Services" ? "page" : null)"><i class="bi bi-grid me-1" aria-hidden="true"></i> Dịch vụ</a>
+                    <a class="cc-section-link @(currentController == "ServiceHistories" ? "is-active" : "")" asp-controller="ServiceHistories" asp-action="Index" aria-current="@(currentController == "ServiceHistories" ? "page" : null)"><i class="bi bi-clock-history me-1" aria-hidden="true"></i> Lịch sử chăm sóc</a>
+                    <a class="cc-section-link @(currentController == "Feedbacks" ? "is-active" : "")" asp-controller="Feedbacks" asp-action="Index" aria-current="@(currentController == "Feedbacks" ? "page" : null)"><i class="bi bi-star me-1" aria-hidden="true"></i> Phản hồi</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container-fluid px-3 px-lg-4 cc-page-wrapper">
+        <main role="main" class="pb-4">@RenderBody()</main>
+    </div>
+    <footer class="border-top footer text-muted bg-white py-3 mt-4">
+        <div class="container-fluid px-3 px-lg-4 text-center small">
+            &copy; 2026 - Nhóm Quản lý Hồ sơ &amp; Lịch sử Chăm sóc Khách hàng (RavenDB) - Thành viên: Thanh, Quốc, Đạt.
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html> *@

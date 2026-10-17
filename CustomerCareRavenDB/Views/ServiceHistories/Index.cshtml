@@ -1,0 +1,34 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model IReadOnlyList<CustomerCareRavenDB.Models.ServiceHistory>
+@{ ViewData["Title"] = "Lịch sử chăm sóc"; }
+<div class="d-flex justify-content-between align-items-center mb-3"><h2>Lịch sử chăm sóc</h2><a class="btn btn-primary" asp-action="Create">Ghi nhận lịch sử</a></div>
+@if (TempData["Success"] != null) { <div class="alert alert-success">@TempData["Success"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+<form method="get" asp-action="Index" class="card card-body mb-3 shadow-sm">
+    <div class="row g-2">
+        <div class="col-md-4"><label class="form-label">Khách hàng</label><select name="customerId" class="form-select"><option value="">Tất cả</option>
+        @foreach(var op in (IEnumerable<SelectListItem>)ViewBag.Customers) { <option value="@op.Value" selected="@(op.Value == (string?)ViewBag.CustomerId)">@op.Text</option> }
+        </select></div>
+        <div class="col-md-4"><label class="form-label">Nhân viên</label><select name="staffId" class="form-select"><option value="">Tất cả</option>
+        @foreach(var op in (IEnumerable<SelectListItem>)ViewBag.Staffs) { <option value="@op.Value" selected="@(op.Value == (string?)ViewBag.StaffId)">@op.Text</option> }
+        </select></div>
+        <div class="col-md-4"><label class="form-label">Dịch vụ</label><select name="serviceId" class="form-select"><option value="">Tất cả</option>
+        @foreach(var op in (IEnumerable<SelectListItem>)ViewBag.Services) { <option value="@op.Value" selected="@(op.Value == (string?)ViewBag.ServiceId)">@op.Text</option> }
+        </select></div>
+        <div class="col-md-3"><label class="form-label">Từ ngày (UTC)</label><input type="date" name="from" value="@ViewBag.From" class="form-control" /></div>
+        <div class="col-md-3"><label class="form-label">Đến ngày (UTC)</label><input type="date" name="to" value="@ViewBag.To" class="form-control" /></div>
+        <div class="col-md-6 align-self-end"><button type="submit" class="btn btn-outline-primary">Lọc dữ liệu</button> <a class="btn btn-outline-secondary" asp-action="Index">Bỏ lọc</a></div>
+    </div>
+</form>
+<div class="table-responsive bg-white rounded shadow-sm"><table class="table table-hover align-middle mb-0">
+<thead class="table-light"><tr><th>Thời gian (UTC)</th><th>Khách hàng</th><th>Dịch vụ</th><th>Nhân viên</th><th>Lịch hẹn</th><th>Thao tác</th></tr></thead><tbody>
+@foreach(var item in Model) { <tr>
+    <td>@item.ServiceDate.ToString("dd/MM/yyyy HH:mm")</td><td><code>@item.CustomerId</code></td><td><code>@item.ServiceId</code></td><td><code>@item.StaffId</code></td><td><code>@item.AppointmentId</code></td>
+    <td class="text-nowrap">
+        <a class="btn btn-sm btn-outline-info" href="@(Url.Action("Details", "ServiceHistories") + "?id=" + Uri.EscapeDataString(item.Id))">Xem</a>
+        <a class="btn btn-sm btn-outline-warning" href="@(Url.Action("Edit", "ServiceHistories") + "?id=" + Uri.EscapeDataString(item.Id))">Sửa</a>
+        <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xóa lịch sử này?');"><input type="hidden" name="id" value="@item.Id" /><button class="btn btn-sm btn-outline-danger" type="submit">Xóa</button></form>
+    </td>
+</tr> }
+@if (Model.Count == 0) { <tr><td colspan="6" class="text-center text-muted py-4">Không tìm thấy lịch sử phù hợp.</td></tr> }
+</tbody></table></div>

@@ -1,0 +1,11 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model CustomerCareRavenDB.ViewModels.ServiceHistoryFormViewModel
+<div asp-validation-summary="All" class="text-danger mb-3"></div>
+<div class="mb-3"><label asp-for="AppointmentId" class="form-label">Lịch hẹn (tự xác định khách hàng và dịch vụ) *</label>
+<select asp-for="AppointmentId" asp-items="@(ViewBag.Appointments as IEnumerable<SelectListItem>)" class="form-select"><option value="">-- Chọn lịch hẹn --</option></select><span asp-validation-for="AppointmentId" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="StaffId" class="form-label">Nhân viên phụ trách *</label>
+<select asp-for="StaffId" asp-items="@(ViewBag.Staffs as IEnumerable<SelectListItem>)" class="form-select"><option value="">-- Chọn nhân viên --</option></select><span asp-validation-for="StaffId" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="ServiceDate" class="form-label">Ngày giờ thực hiện (UTC) *</label><input asp-for="ServiceDate" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" class="form-control" /><span asp-validation-for="ServiceDate" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Description" class="form-label">Nội dung thực hiện *</label><textarea asp-for="Description" class="form-control" rows="3"></textarea><span asp-validation-for="Description" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Result" class="form-label">Kết quả</label><textarea asp-for="Result" class="form-control" rows="2"></textarea><span asp-validation-for="Result" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Note" class="form-label">Ghi chú</label><textarea asp-for="Note" class="form-control" rows="2"></textarea><span asp-validation-for="Note" class="text-danger"></span></div>
