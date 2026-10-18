@@ -1,0 +1,60 @@
+﻿@model CustomerCareRavenDB.Models.Customer
+
+@{
+    ViewData["Title"] = "Xóa khách hàng";
+}
+
+<div class="container mt-4">
+    <h2 class="text-danger mb-3">Xóa khách hàng</h2>
+
+    <div class="alert alert-warning">
+        <strong>Bạn có chắc chắn muốn xóa khách hàng này không?</strong>
+        <p class="mb-0 mt-1">
+            Thao tác này sẽ xóa thông tin khách hàng khỏi hệ thống.
+        </p>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            Thông tin khách hàng
+        </div>
+
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-md-3">Mã khách hàng</dt>
+                <dd class="col-md-9">@Model.Id</dd>
+
+                <dt class="col-md-3">Họ và tên</dt>
+                <dd class="col-md-9">@Model.FullName</dd>
+
+                <dt class="col-md-3">Số điện thoại</dt>
+                <dd class="col-md-9">@Model.Phone</dd>
+
+                <dt class="col-md-3">Email</dt>
+                <dd class="col-md-9">@Model.Email</dd>
+
+                <dt class="col-md-3">Địa chỉ</dt>
+                <dd class="col-md-9">
+                    @(Model.Address?.ToString() ?? "Chưa cập nhật")
+                </dd>
+
+                <dt class="col-md-3">Trạng thái</dt>
+                <dd class="col-md-9">@Model.Status</dd>
+            </dl>
+        </div>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" name="id" value="@Model.Id" />
+
+        <button type="submit" class="btn btn-danger">
+            Xác nhận xóa
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Hủy
+        </a>
+    </form>
+</div>

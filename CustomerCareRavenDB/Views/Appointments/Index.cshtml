@@ -1,0 +1,143 @@
+﻿@model IEnumerable<CustomerCareRavenDB.Models.Appointment>
+
+@{
+    ViewData["Title"] = "Quản lý lịch hẹn";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Quản lý lịch hẹn</h2>
+
+        <a asp-action="Create" class="btn btn-primary">
+            + Tạo lịch hẹn
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    <form asp-action="Index" method="get" class="row g-2 mb-3">
+        <div class="col-md-6">
+            <input name="keyword"
+                   value="@ViewBag.Keyword"
+                   class="form-control"
+                   placeholder="Tìm theo tên hoặc số điện thoại khách hàng" />
+        </div>
+
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">-- Tất cả trạng thái --</option>
+                <option value="Pending"
+                        selected="@(ViewBag.Status?.ToString() == "Pending")">
+                    Chờ xác nhận
+                </option>
+                <option value="Confirmed"
+                        selected="@(ViewBag.Status?.ToString() == "Confirmed")">
+                    Đã xác nhận
+                </option>
+                <option value="Completed"
+                        selected="@(ViewBag.Status?.ToString() == "Completed")">
+                    Hoàn thành
+                </option>
+                <option value="Cancelled"
+                        selected="@(ViewBag.Status?.ToString() == "Cancelled")">
+                    Đã hủy
+                </option>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-success">Tìm kiếm</button>
+            <a asp-action="Index" class="btn btn-secondary">Đặt lại</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Mã lịch hẹn</th>
+                    <th>Mã khách hàng</th>
+                    <th>Mã dịch vụ</th>
+                    <th>Ngày giờ hẹn</th>
+                    <th>Trạng thái</th>
+                    <th>Ghi chú</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Any())
+                {
+                    @foreach (var appointment in Model)
+                    {
+                        <tr>
+                            <td>@appointment.Id</td>
+                            <td>@appointment.CustomerId</td>
+                            <td>@appointment.ServiceId</td>
+                            <td>
+                                @appointment.AppointmentDate.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td>
+                                @switch (appointment.Status)
+                                {
+                                    case "Pending":
+                                        <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                        break;
+                                    case "Confirmed":
+                                        <span class="badge bg-primary">Đã xác nhận</span>
+                                        break;
+                                    case "Completed":
+                                        <span class="badge bg-success">Hoàn thành</span>
+                                        break;
+                                    case "Cancelled":
+                                        <span class="badge bg-secondary">Đã hủy</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-info">@appointment.Status</span>
+                                        break;
+                                }
+                            </td>
+                            <td>@appointment.Note</td>
+                            <td style="min-width: 190px">
+                                <a asp-action="Details"
+                                   asp-route-id="@appointment.Id"
+                                   class="btn btn-sm btn-info">
+                                    Chi tiết
+                                </a>
+
+                                <a asp-action="Edit"
+                                   asp-route-id="@appointment.Id"
+                                   class="btn btn-sm btn-warning">
+                                    Sửa
+                                </a>
+
+                                @if (appointment.Status != "Cancelled"
+                                                        && appointment.Status != "Completed")
+                                {
+                                    <a asp-action="Delete"
+                                       asp-route-id="@appointment.Id"
+                                       class="btn btn-sm btn-danger">
+                                        Hủy lịch
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">
+                            Chưa có lịch hẹn hoặc không tìm thấy kết quả.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,96 @@
+﻿@model CustomerCareRavenDB.Models.Appointment
+
+@{
+    ViewData["Title"] = "Sửa lịch hẹn";
+}
+
+<h1>Sửa lịch hẹn</h1>
+
+<hr />
+
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit"
+              asp-route-id="@Model.Id"
+              method="post">
+
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div asp-validation-summary="ModelOnly"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="CustomerId" class="form-label">
+                    Khách hàng
+                </label>
+                <select asp-for="CustomerId"
+                        asp-items="ViewBag.Customers"
+                        class="form-select">
+                    <option value="">-- Chọn khách hàng --</option>
+                </select>
+                <span asp-validation-for="CustomerId"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ServiceId" class="form-label">
+                    Dịch vụ
+                </label>
+                <select asp-for="ServiceId"
+                        asp-items="ViewBag.Services"
+                        class="form-select">
+                    <option value="">-- Chọn dịch vụ --</option>
+                </select>
+                <span asp-validation-for="ServiceId"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AppointmentDate"
+                       class="form-label">Ngày giờ hẹn</label>
+                <input asp-for="AppointmentDate"
+                       type="datetime-local"
+                       class="form-control" />
+                <span asp-validation-for="AppointmentDate"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label">
+                    Trạng thái
+                </label>
+                <select asp-for="Status" class="form-select">
+                    <option value="Pending">Chờ xác nhận</option>
+                    <option value="Confirmed">Đã xác nhận</option>
+                    <option value="Completed">Hoàn thành</option>
+                    <option value="Cancelled">Đã hủy</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Note" class="form-label">
+                    Ghi chú
+                </label>
+                <textarea asp-for="Note"
+                          class="form-control"
+                          rows="3"></textarea>
+                <span asp-validation-for="Note"
+                      class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Lưu thay đổi
+            </button>
+
+            <a asp-action="Index"
+               class="btn btn-secondary ms-2">Quay lại</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
