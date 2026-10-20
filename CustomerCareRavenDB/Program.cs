@@ -27,6 +27,7 @@ using (var scope = app.Services.CreateScope())
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var context = scope.ServiceProvider.GetRequiredService<IRavenDbContext>();
     var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+    var startupStep = "kiểm tra/tạo database";
 
     try
     {
@@ -34,23 +35,31 @@ using (var scope = app.Services.CreateScope())
         await context.EnsureDatabaseExistsAsync();
 
         // Đăng ký Static Index tự động
+        startupStep = "triển khai Static Index";
         logger.LogInformation("Đang triển khai Static Index: ServiceHistories_ByCustomerAndDate...");
         await IndexCreation.CreateIndexesAsync(
             typeof(ServiceHistories_ByCustomerAndDate).Assembly,
             context.Store);
         logger.LogInformation("Static Index đã sẵn sàng.");
 
-        // Nếu có tham số dòng lệnh --seed hoặc database chưa có dữ liệu, thực hiện nạp dữ liệu mẫu
+        // Nạp dữ liệu mẫu khi chạy Development hoặc có tham số dòng lệnh --seed (seeder tự bỏ qua nếu đã có dữ liệu)
         if (args.Contains("--seed") || app.Environment.IsDevelopment())
         {
+            startupStep = "nạp dữ liệu mẫu (seeding)";
             logger.LogInformation("Thực hiện kiểm tra và nạp dữ liệu mẫu (Seeding)...");
             await seeder.SeedAsync();
         }
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Lỗi xảy ra trong quá trình khởi tạo RavenDB lúc khởi động: {Message}", ex.Message);
-        // Không ngắt app hoàn toàn để trang Dashboard chẩn đoán vẫn có thể hiển thị cảnh báo cho dev
+        // Không ngắt app hoàn toàn để trang Dashboard chẩn đoán vẫn có thể hiển thị cảnh báo cho dev,
+        // nhưng ghi log mức Critical, nêu rõ bước bị lỗi, URL/database và hậu quả để dễ phát hiện.
+        logger.LogCritical(ex,
+            "KHỞI TẠO RAVENDB THẤT BẠI ở bước '{Step}' (Urls: {Urls}, Database: {Database}): {Message}. " +
+            "Ứng dụng vẫn chạy nhưng database/index/dữ liệu mẫu có thể chưa sẵn sàng; " +
+            "các trang truy vấn RavenDB sẽ lỗi cho đến khi khắc phục. " +
+            "Kiểm tra RavenDB Server đang chạy và cấu hình RavenSettings (Urls, DatabaseName, CertificatePath).",
+            startupStep, string.Join(", ", context.Store.Urls), context.DatabaseName, ex.Message);
     }
 }
 
