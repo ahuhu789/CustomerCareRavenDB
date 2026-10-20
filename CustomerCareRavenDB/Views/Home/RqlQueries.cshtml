@@ -75,6 +75,8 @@
     </div>
 </div>
 
+<div id="rqlAntiForgery" class="d-none">@Html.AntiForgeryToken()</div>
+
 <script>
     function setAndExecuteRql(query) {
         document.getElementById('rqlInput').value = query;
@@ -96,7 +98,11 @@
 
         const startTime = performance.now();
         try {
-            const response = await fetch(`/Diagnostic/ExecuteRql?query=${encodeURIComponent(query)}`);
+            const body = new FormData();
+            body.append('query', query);
+            body.append('__RequestVerificationToken',
+                document.querySelector('#rqlAntiForgery input[name="__RequestVerificationToken"]').value);
+            const response = await fetch('@Url.Action("ExecuteRql", "Diagnostic")', { method: 'POST', body });
             const elapsed = Math.round(performance.now() - startTime);
             const data = await response.json();
 
@@ -109,7 +115,7 @@
                 badge.className = 'badge bg-danger';
                 badge.textContent = 'Lỗi truy vấn';
                 timeText.textContent = `Lỗi sau: ${elapsed}ms`;
-                jsonPre.textContent = `LỖI TỪ RAVENDB:\n${data.error}`;
+                jsonPre.textContent = `LỖI:\n${data.error}`;
             }
         } catch (err) {
             badge.className = 'badge bg-danger';
