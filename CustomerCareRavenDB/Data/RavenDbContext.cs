@@ -43,6 +43,16 @@ public class RavenDbContext : IRavenDbContext
 
         _defaultDatabase = config.DatabaseName;
 
+        // Nếu đã cấu hình CertificatePath thì file bắt buộc phải tồn tại,
+        // tránh trường hợp lặng lẽ kết nối không có chứng chỉ rồi bị RavenDB từ chối.
+        if (!string.IsNullOrWhiteSpace(config.CertificatePath) && !File.Exists(config.CertificatePath))
+        {
+            throw new FileNotFoundException(
+                $"Không tìm thấy file chứng chỉ RavenDB tại '{config.CertificatePath}' (cấu hình RavenSettings:CertificatePath). " +
+                "Kiểm tra lại đường dẫn hoặc bỏ trống CertificatePath nếu RavenDB không yêu cầu chứng chỉ.",
+                config.CertificatePath);
+        }
+
         try
         {
             var store = new DocumentStore
@@ -52,7 +62,7 @@ public class RavenDbContext : IRavenDbContext
             };
 
             // Cấu hình chứng chỉ nếu có
-            if (!string.IsNullOrWhiteSpace(config.CertificatePath) && File.Exists(config.CertificatePath))
+            if (!string.IsNullOrWhiteSpace(config.CertificatePath))
             {
                 store.Certificate = string.IsNullOrWhiteSpace(config.CertificatePassword)
                     ? X509CertificateLoader.LoadCertificateFromFile(config.CertificatePath)
