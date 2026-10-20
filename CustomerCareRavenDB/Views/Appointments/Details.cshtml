@@ -24,9 +24,7 @@
             <dd class="col-sm-9">
                 @if (customer != null)
                 {
-                    <a asp-controller="Customers"
-                       asp-action="Details"
-                       asp-route-id="@customer.Id">
+                    <a href="@(Url.Action("Details", "Customers") + "?id=" + Uri.EscapeDataString(customer.Id))">
                         @customer.FullName
                     </a>
                     <span> - @customer.Phone</span>
@@ -96,8 +94,7 @@
     </div>
 </div>
 
-<a asp-action="Edit"
-   asp-route-id="@Model.Id"
+<a href="@(Url.Action("Edit") + "?id=" + Uri.EscapeDataString(Model.Id))"
    class="btn btn-warning">Sửa lịch hẹn</a>
 
 <a asp-action="Index"

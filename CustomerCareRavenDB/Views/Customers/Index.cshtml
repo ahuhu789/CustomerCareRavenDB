@@ -84,16 +84,13 @@
                             </td>
                             <td>@customer.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
                             <td>
-                                <a asp-action="Details"
-                                   asp-route-id="@customer.Id"
+                                <a href="@(Url.Action("Details") + "?id=" + Uri.EscapeDataString(customer.Id))"
                                    class="btn btn-sm btn-info">Chi tiết</a>
 
-                                <a asp-action="Edit"
-                                   asp-route-id="@customer.Id"
+                                <a href="@(Url.Action("Edit") + "?id=" + Uri.EscapeDataString(customer.Id))"
                                    class="btn btn-sm btn-warning">Sửa</a>
 
-                                <a asp-action="Delete"
-                                   asp-route-id="@customer.Id"
+                                <a href="@(Url.Action("Delete") + "?id=" + Uri.EscapeDataString(customer.Id))"
                                    class="btn btn-sm btn-danger">Xóa</a>
                             </td>
                         </tr>
