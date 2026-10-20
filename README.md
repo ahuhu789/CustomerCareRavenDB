@@ -31,8 +31,8 @@
 | Thành viên | Phụ trách | Trạng thái hiện tại |
 |---|---|---|
 | **Thanh** | Database architecture, RavenDB Studio, Document Models, RavenDB integration, Data Layer, RQL, Indexes, integration testing and technical documentation | **ĐÃ HOÀN THÀNH 100% NỀN TẢNG** |
-| **Quốc** | Customers and Appointments business modules (Controllers & Views) | **Sẵn sàng tiếp nhận để phát triển** |
-| **Đạt** | Services, ServiceHistories and Feedbacks business modules (Controllers & Views) | **Sẵn sàng tiếp nhận để phát triển** |
+| **Quốc** | Customers and Appointments business modules (Controllers & Views) | **Đã merge vào `main` (PR #2)** |
+| **Đạt** | Services, ServiceHistories and Feedbacks business modules (Controllers & Views) | **Đã merge vào `main` (PR #3)** |
 
 ---
 
@@ -50,13 +50,15 @@
 - [x] Xây dựng bộ kiểm thử tự động xUnit với **18/18 test cases ĐẠT 100%**.
 - [x] Xây dựng giao diện Dashboard trung tâm (`/Home/Index`) và trang kiểm thử RQL trực tiếp (`/Home/RqlQueries`).
 - [x] Soạn thảo toàn bộ tài liệu kỹ thuật chi tiết trong thư mục `Docs/`.
+- [x] Giao diện CRUD nghiệp vụ Customers & Appointments (Quốc — PR #2, đã merge vào `main`).
+- [x] Giao diện CRUD nghiệp vụ Services, ServiceHistories & Feedbacks (Đạt — PR #3, đã merge vào `main`).
 
 ### 2. Đang thực hiện (In progress)
-- [*] Chuẩn bị phân phối mã nguồn và bàn giao kỹ thuật cho Quốc và Đạt qua GitHub.
+- [*] Sửa các lỗi phát hiện khi rà soát (nhánh `fix/bugs-from-review`).
 
 ### 3. Chưa bắt đầu (Not started)
-- [ ] Xây dựng giao diện CRUD nghiệp vụ Customers & Appointments (Phụ trách: Quốc).
-- [ ] Xây dựng giao diện CRUD nghiệp vụ Services, ServiceHistories & Feedbacks (Phụ trách: Đạt).
+- [ ] Phân quyền / đăng nhập người dùng (xem mục H).
+- [ ] Triển khai (deploy) lên môi trường online.
 
 ### 4. Tắc nghẽn (Blocked)
 - Không có bất kỳ tắc nghẽn hạ tầng nào. Hạ tầng database và Data Layer vận hành ổn định.
@@ -88,14 +90,20 @@ Cơ sở dữ liệu: **`CustomerCareDB`** gồm 6 Primary Collections:
 ## E. Cấu Trúc Dự Án Thực Tế (Project Structure)
 
 ```text
-NoSQL_Project/
+CustomerCareRavenDB/                       # Thư mục gốc repository
 │
-├── CustomerCareRavenDB.sln
+├── CustomerCareRavenDB.sln                # Solution dùng để build/test (khuyến nghị)
+├── CustomerCareRavenDB.slnx               # Bản solution định dạng mới (cùng 2 project, cho VS 2026)
 │
 ├── CustomerCareRavenDB/
 │   ├── Controllers/
 │   │   ├── HomeController.cs              # Dashboard thống kê và kết nối RavenDB
-│   │   └── DiagnosticController.cs        # Chẩn đoán kết nối và thực thi RQL trực tiếp
+│   │   ├── DiagnosticController.cs        # Chẩn đoán kết nối và thực thi RQL trực tiếp
+│   │   ├── CustomersController.cs         # CRUD khách hàng (Quốc)
+│   │   ├── AppointmentsController.cs      # CRUD lịch hẹn (Quốc)
+│   │   ├── ServicesController.cs          # CRUD dịch vụ (Đạt)
+│   │   ├── ServiceHistoriesController.cs  # Lịch sử chăm sóc (Đạt)
+│   │   └── FeedbacksController.cs         # Phản hồi khách hàng (Đạt)
 │   │
 │   ├── Data/
 │   │   ├── RavenSettings.cs               # Model cấu hình kết nối từ appsettings.json
@@ -155,26 +163,35 @@ NoSQL_Project/
 
 ## F. Hướng Dẫn Cài Đặt và Khởi Chạy (Installation Instructions)
 
-Áp dụng cho máy tính Windows:
+Yêu cầu: **.NET SDK 10.0** và một RavenDB Server (7.x) chạy cục bộ trên cổng `8080`. Các lệnh dưới đây dùng được trên Windows (PowerShell), macOS và Linux.
 
 ### 1. Clone mã nguồn
 ```powershell
-git clone <URL_REPOSITORY>
-cd NoSQL_Project
+git clone https://github.com/ahuhu789/CustomerCareRavenDB.git
+cd CustomerCareRavenDB
 ```
 
 ### 2. Khởi động RavenDB Server
 Khởi động RavenDB Server cục bộ trên cổng `8080`. Mở trình duyệt kiểm tra tại: `http://127.0.0.1:8080`.
 
-### 3. Khôi phục thư viện và Build
+Nếu có Docker, có thể chạy nhanh một server không bảo mật (chỉ dùng cho máy cá nhân):
 ```powershell
-dotnet restore
-dotnet build
+docker run -d --name ravendb -p 8080:8080 -e RAVEN_Setup_Mode=None -e RAVEN_License_Eula_Accepted=true -e RAVEN_Security_UnsecuredAccessAllowed=PrivateNetwork ravendb/ravendb:ubuntu-latest
+```
+
+Địa chỉ server / tên database / chứng chỉ có thể đổi trong `CustomerCareRavenDB/appsettings.json` (section `RavenSettings`) hoặc qua biến môi trường — xem `.env.example`.
+
+### 3. Khôi phục thư viện và Build
+Thư mục gốc có **hai** file solution (`.sln` và `.slnx`), nên phải chỉ rõ solution, nếu không `dotnet` báo lỗi `MSB1011`:
+```powershell
+dotnet restore CustomerCareRavenDB.sln
+dotnet build CustomerCareRavenDB.sln
 ```
 
 ### 4. Chạy toàn bộ kiểm thử tự động
+Các bài test tích hợp cần RavenDB Server đang chạy tại `http://127.0.0.1:8080`.
 ```powershell
-dotnet test
+dotnet test CustomerCareRavenDB.sln
 ```
 
 ### 5. Khởi chạy ứng dụng Web
@@ -182,6 +199,8 @@ dotnet test
 dotnet run --project CustomerCareRavenDB
 ```
 Truy cập vào địa chỉ hiển thị trên màn hình console (ví dụ: `http://localhost:5069`) để trải nghiệm Dashboard và trình thử nghiệm truy vấn RQL.
+
+Ở môi trường Development, ứng dụng tự tạo database, triển khai index và nạp dữ liệu mẫu; ở môi trường khác thêm tham số `--seed` để nạp dữ liệu mẫu. Trình thử RQL (`/Diagnostic/ExecuteRql`) chỉ bật mặc định trong Development (cấu hình `Diagnostics:EnableRqlEndpoint`).
 
 ---
 
@@ -210,8 +229,8 @@ Truy cập vào địa chỉ hiển thị trên màn hình console (ví dụ: `h
 
 ## I. Các Bước Tiếp Theo (Next Steps)
 
-1. **Quốc:** Tiếp nhận nhánh `feature/thanh-ravendb-foundation`, tạo nhánh riêng và triển khai chức năng quản lý khách hàng và lịch hẹn (`CustomersController`, `AppointmentsController`).
-2. **Đạt:** Tiếp nhận nhánh `feature/thanh-ravendb-foundation`, tạo nhánh riêng và triển khai chức năng quản lý dịch vụ, biên bản kỹ thuật và phản hồi (`ServicesController`, `ServiceHistoriesController`, `FeedbacksController`).
+1. **Cả nhóm:** Kiểm thử chéo toàn bộ 6 phân hệ trên nhánh `main` (các module của Quốc và Đạt đã được merge qua PR #2 và PR #3).
+2. **Quốc / Đạt:** Bổ sung kiểm tra tham chiếu khi xóa khách hàng (lịch hẹn/lịch sử/phản hồi đang tham chiếu) và phân trang cho các danh sách lớn.
 3. **Thanh:** Hỗ trợ giải đáp các thắc mắc về truy vấn RQL nâng cao, hỗ trợ kiểm thử tích hợp chéo giữa các module và tổng hợp báo cáo chung.
 
 ---
@@ -221,10 +240,10 @@ Truy cập vào địa chỉ hiển thị trên màn hình console (ví dụ: `h
 - **Ngày hoàn thành bàn giao:** 17/10/2026
 - **Branch bàn giao:** `feature/thanh-ravendb-foundation`
 - **Người bàn giao:** Thanh (Database Architect & Data Layer Engineer)
-- **Commit hash nền tảng:** `7876592`
+- **Commit hash nền tảng:** `7ed75c7`
 - **Lịch sử commit:**
   - `33d4ab5`: `feat(database): implement RavenDB foundation and document models`
   - `66b2d7d`: `feat(database): add seeding and indexes`
   - `eee7f1c`: `test(database): add RavenDB integration tests`
   - `56dd992`: `docs: add setup guide and team progress report`
-  - `7876592`: `docs: record commit references and finalize handoff report`
+  - `7ed75c7`: `docs: record commit references and finalize handoff report`
