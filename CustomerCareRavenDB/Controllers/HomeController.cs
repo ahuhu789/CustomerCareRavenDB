@@ -26,11 +26,13 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
+        // URL RavenDB/Studio lấy từ cấu hình RavenSettings:Urls (qua DocumentStore), không hardcode.
+        var ravenUrl = (_ravenContext.Store.Urls.FirstOrDefault() ?? string.Empty).TrimEnd('/');
         var vm = new DashboardViewModel
         {
             DatabaseName = _ravenContext.DatabaseName,
-            RavenUrl = _ravenContext.Store.Urls.FirstOrDefault() ?? "http://127.0.0.1:8080",
-            StudioUrl = $"{_ravenContext.Store.Urls.FirstOrDefault() ?? "http://127.0.0.1:8080"}/studio/index.html#databases/documents?&database={_ravenContext.DatabaseName}"
+            RavenUrl = ravenUrl,
+            StudioUrl = $"{ravenUrl}/studio/index.html#databases/documents?&database={Uri.EscapeDataString(_ravenContext.DatabaseName)}"
         };
 
         try
@@ -59,7 +61,7 @@ public class HomeController : Controller
             }
             else
             {
-                vm.StatusMessage = "Không thể kết nối tới RavenDB Server. Vui lòng đảm bảo Raven.Server đang chạy trên http://127.0.0.1:8080.";
+                vm.StatusMessage = $"Không thể kết nối tới RavenDB Server. Vui lòng đảm bảo Raven.Server đang chạy trên {ravenUrl} (cấu hình RavenSettings:Urls).";
             }
         }
         catch (Exception ex)
