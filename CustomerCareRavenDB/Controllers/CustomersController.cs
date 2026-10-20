@@ -88,7 +88,8 @@ public class CustomersController : Controller
         if (!ModelState.IsValid)
             return View(customer);
 
-        customer.Id = string.Empty;
+        // Id = null để RavenDB tự sinh Id có prefix collection (customers/1-A).
+        customer.Id = null!;
         customer.CreatedAt = DateTime.UtcNow;
 
         using var session = _context.OpenAsyncSession();

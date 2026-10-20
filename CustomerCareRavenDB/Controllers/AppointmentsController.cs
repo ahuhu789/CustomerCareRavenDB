@@ -119,7 +119,8 @@ public class AppointmentsController : Controller
             return View(appointment);
         }
 
-        appointment.Id = string.Empty;
+        // Id = null để RavenDB tự sinh Id có prefix collection (appointments/1-A).
+        appointment.Id = null!;
         appointment.CreatedAt = DateTime.UtcNow;
 
         await session.StoreAsync(appointment);
