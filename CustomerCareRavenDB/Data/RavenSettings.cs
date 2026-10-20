@@ -8,9 +8,11 @@ public class RavenSettings
     public const string SectionName = "RavenSettings";
 
     /// <summary>
-    /// Danh sách URL của cụm RavenDB Server (mặc định: http://127.0.0.1:8080).
+    /// Danh sách URL của cụm RavenDB Server (cấu hình trong appsettings.json: http://127.0.0.1:8080).
+    /// Mặc định để rỗng: configuration binder của .NET NỐI THÊM phần tử vào mảng đã khởi tạo sẵn,
+    /// nên nếu đặt giá trị mặc định thì URL cấu hình (vd. RavenSettings__Urls__0) bị xếp sau URL mặc định.
     /// </summary>
-    public string[] Urls { get; set; } = ["http://127.0.0.1:8080"];
+    public string[] Urls { get; set; } = [];
 
     /// <summary>
     /// Tên cơ sở dữ liệu chính (mặc định: CustomerCareDB).
