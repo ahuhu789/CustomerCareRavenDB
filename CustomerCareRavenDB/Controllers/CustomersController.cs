@@ -21,21 +21,30 @@ public class CustomersController : Controller
     {
         using var session = _context.OpenAsyncSession();
 
-        var query = session.Query<Customer>();
+        // Dùng DocumentQuery để nhóm các điều kiện Search trong ngoặc:
+        // Status = x AND (search(FullName) OR search(Phone) OR search(Email)).
+        // RavenDB không hỗ trợ string.Contains trong LINQ nên dùng full-text Search() với wildcard.
+        var query = session.Advanced.AsyncDocumentQuery<Customer>();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            query = query.WhereEquals(c => c.Status, status);
+        }
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
             keyword = keyword.Trim();
+            var term = $"*{keyword}*";
 
-            query = query.Where(c =>
-                c.FullName.Contains(keyword) ||
-                c.Phone.Contains(keyword) ||
-                c.Email.Contains(keyword));
-        }
+            if (!string.IsNullOrWhiteSpace(status))
+                query = query.AndAlso();
 
-        if (!string.IsNullOrWhiteSpace(status))
-        {
-            query = query.Where(c => c.Status == status);
+            query = query
+                .OpenSubclause()
+                    .Search(c => c.FullName, term)
+                    .OrElse().Search(c => c.Phone, term)
+                    .OrElse().Search(c => c.Email, term)
+                .CloseSubclause();
         }
 
         var customers = await query
