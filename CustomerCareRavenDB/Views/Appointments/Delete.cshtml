@@ -1,0 +1,63 @@
+﻿@model CustomerCareRavenDB.Models.Appointment
+
+@{
+    ViewData["Title"] = "Hủy lịch hẹn";
+}
+
+<h1>Hủy lịch hẹn</h1>
+
+<div class="alert alert-warning" role="alert">
+    Bạn có chắc chắn muốn hủy lịch hẹn này không?
+    Lịch hẹn sẽ được chuyển sang trạng thái "Đã hủy",
+    không bị xóa khỏi cơ sở dữ liệu.
+</div>
+
+<div class="card mb-3">
+    <div class="card-header">
+        Thông tin lịch hẹn
+    </div>
+
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Mã lịch hẹn</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Mã khách hàng</dt>
+            <dd class="col-sm-9">@Model.CustomerId</dd>
+
+            <dt class="col-sm-3">Mã dịch vụ</dt>
+            <dd class="col-sm-9">@Model.ServiceId</dd>
+
+            <dt class="col-sm-3">Ngày giờ hẹn</dt>
+            <dd class="col-sm-9">
+                @Model.AppointmentDate.ToString("dd/MM/yyyy HH:mm")
+            </dd>
+
+            <dt class="col-sm-3">Trạng thái hiện tại</dt>
+            <dd class="col-sm-9">@Model.Status</dd>
+
+            <dt class="col-sm-3">Ghi chú</dt>
+            <dd class="col-sm-9">
+                @(string.IsNullOrWhiteSpace(Model.Note)
+                                ? "Không có ghi chú"
+                                : Model.Note)
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete"
+      asp-route-id="@Model.Id"
+      method="post">
+
+    @Html.AntiForgeryToken()
+
+    <button type="submit" class="btn btn-danger">
+        Xác nhận hủy lịch
+    </button>
+
+    <a asp-action="Index"
+       class="btn btn-secondary ms-2">
+        Quay lại
+    </a>
+</form>

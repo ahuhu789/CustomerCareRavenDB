@@ -1,0 +1,96 @@
+﻿@model CustomerCareRavenDB.Models.Customer
+
+@{
+    ViewData["Title"] = "Chỉnh sửa khách hàng";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Chỉnh sửa khách hàng</h2>
+
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="Id" />
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3"></div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="FullName" class="form-label">Họ và tên</label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                <input asp-for="Phone" class="form-control" />
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Birthday" class="form-label">Ngày sinh</label>
+                <input asp-for="Birthday" type="date" class="form-control" />
+                <span asp-validation-for="Birthday" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Gender" class="form-label">Giới tính</label>
+                <select asp-for="Gender" class="form-select">
+                    <option value="">-- Chọn giới tính --</option>
+                    <option value="Male">Nam</option>
+                    <option value="Female">Nữ</option>
+                    <option value="Other">Khác</option>
+                </select>
+                <span asp-validation-for="Gender" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Status" class="form-label">Trạng thái</label>
+                <select asp-for="Status" class="form-select">
+                    <option value="Active">Đang hoạt động</option>
+                    <option value="Inactive">Ngừng hoạt động</option>
+                </select>
+            </div>
+        </div>
+
+        <h5 class="mt-3 mb-3">Địa chỉ</h5>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label asp-for="Address.Street" class="form-label">Đường / Số nhà</label>
+                <input asp-for="Address.Street" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Address.Ward" class="form-label">Phường / Xã</label>
+                <input asp-for="Address.Ward" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Address.District" class="form-label">Quận / Huyện</label>
+                <input asp-for="Address.District" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label asp-for="Address.City" class="form-label">Tỉnh / Thành phố</label>
+                <input asp-for="Address.City" class="form-control" />
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

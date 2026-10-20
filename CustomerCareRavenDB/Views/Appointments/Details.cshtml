@@ -1,0 +1,104 @@
+﻿@model CustomerCareRavenDB.Models.Appointment
+
+@{
+    ViewData["Title"] = "Chi tiết lịch hẹn";
+    var customer = ViewBag.Customer as CustomerCareRavenDB.Models.Customer;
+    var service = ViewBag.Service as CustomerCareRavenDB.Models.Service;
+}
+
+<h1>Chi tiết lịch hẹn</h1>
+
+<hr />
+
+<div class="card mb-3">
+    <div class="card-header">
+        Thông tin lịch hẹn
+    </div>
+
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Mã lịch hẹn</dt>
+            <dd class="col-sm-9">@Model.Id</dd>
+
+            <dt class="col-sm-3">Khách hàng</dt>
+            <dd class="col-sm-9">
+                @if (customer != null)
+                {
+                    <a asp-controller="Customers"
+                       asp-action="Details"
+                       asp-route-id="@customer.Id">
+                        @customer.FullName
+                    </a>
+                    <span> - @customer.Phone</span>
+                }
+                else
+                {
+                    <span>Không tìm thấy khách hàng</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Dịch vụ</dt>
+            <dd class="col-sm-9">
+                @if (service != null)
+                {
+                    <strong>@service.Name</strong>
+                    <span> - @service.Category</span>
+                    <br />
+                    <span>@service.Description</span>
+                    <br />
+                    <span>Giá: @service.Price.ToString("N0")</span>
+                }
+                else
+                {
+                    <span>Không tìm thấy dịch vụ</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Ngày giờ hẹn</dt>
+            <dd class="col-sm-9">
+                @Model.AppointmentDate.ToString("dd/MM/yyyy HH:mm")
+            </dd>
+
+            <dt class="col-sm-3">Trạng thái</dt>
+            <dd class="col-sm-9">
+                @switch (Model.Status)
+                {
+                    case "Pending":
+                        <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                        break;
+                    case "Confirmed":
+                        <span class="badge bg-primary">Đã xác nhận</span>
+                        break;
+                    case "Completed":
+                        <span class="badge bg-success">Hoàn thành</span>
+                        break;
+                    case "Cancelled":
+                        <span class="badge bg-danger">Đã hủy</span>
+                        break;
+                    default:
+                        <span>@Model.Status</span>
+                        break;
+                }
+            </dd>
+
+            <dt class="col-sm-3">Ghi chú</dt>
+            <dd class="col-sm-9">
+                @(string.IsNullOrWhiteSpace(Model.Note)
+                                ? "Không có ghi chú"
+                                : Model.Note)
+            </dd>
+
+            <dt class="col-sm-3">Ngày tạo</dt>
+            <dd class="col-sm-9">
+                @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<a asp-action="Edit"
+   asp-route-id="@Model.Id"
+   class="btn btn-warning">Sửa lịch hẹn</a>
+
+<a asp-action="Index"
+   class="btn btn-secondary">Quay lại danh sách</a>
