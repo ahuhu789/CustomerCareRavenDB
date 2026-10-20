@@ -1,0 +1,6 @@
+@model CustomerCareRavenDB.ViewModels.ServiceFormViewModel
+<div asp-validation-summary="All" class="text-danger mb-3"></div>
+<div class="mb-3"><label asp-for="Name" class="form-label">Tên dịch vụ *</label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Category" class="form-label">Loại dịch vụ *</label><input asp-for="Category" class="form-control" placeholder="Ví dụ: Bảo dưỡng định kỳ" /><span asp-validation-for="Category" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Price" class="form-label">Giá (VNĐ) *</label><input asp-for="Price" type="number" step="1000" min="0" class="form-control" /><span asp-validation-for="Price" class="text-danger"></span></div>
+<div class="mb-3"><label asp-for="Description" class="form-label">Mô tả</label><textarea asp-for="Description" class="form-control" rows="4"></textarea><span asp-validation-for="Description" class="text-danger"></span></div>

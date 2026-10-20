@@ -1,0 +1,8 @@
+@model CustomerCareRavenDB.ViewModels.ServiceHistoryFormViewModel
+@{ ViewData["Title"] = "Ghi nhận lịch sử chăm sóc"; }
+<h2>Ghi nhận lịch sử chăm sóc</h2>
+<p class="text-muted">Khách hàng và dịch vụ sẽ được lấy tự động từ lịch hẹn; nhân viên cần chọn riêng.</p>
+<form asp-action="Create" method="post" class="card card-body shadow-sm">
+    <partial name="_Form" model="Model" />
+    <div><button type="submit" class="btn btn-primary">Lưu lịch sử</button> <a class="btn btn-outline-secondary" asp-action="Index">Quay lại</a></div>
+</form>

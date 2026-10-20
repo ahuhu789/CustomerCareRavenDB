@@ -1,0 +1,14 @@
+@model CustomerCareRavenDB.Models.Service
+@{ ViewData["Title"] = "Chi tiết dịch vụ"; }
+<h2>Chi tiết dịch vụ</h2>
+<div class="card card-body shadow-sm">
+    <dl class="row">
+        <dt class="col-sm-3">Mã document</dt><dd class="col-sm-9"><code>@Model.Id</code></dd>
+        <dt class="col-sm-3">Tên dịch vụ</dt><dd class="col-sm-9">@Model.Name</dd>
+        <dt class="col-sm-3">Loại</dt><dd class="col-sm-9">@Model.Category</dd>
+        <dt class="col-sm-3">Giá</dt><dd class="col-sm-9">@Model.Price.ToString("N0") VNĐ</dd>
+        <dt class="col-sm-3">Mô tả</dt><dd class="col-sm-9">@Model.Description</dd>
+        <dt class="col-sm-3">Ngày tạo (UTC)</dt><dd class="col-sm-9">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+    </dl>
+    <div><a class="btn btn-warning" href="@(Url.Action("Edit", "Services") + "?id=" + Uri.EscapeDataString(Model.Id))">Sửa</a> <a class="btn btn-outline-secondary" asp-action="Index">Danh sách</a></div>
+</div>
