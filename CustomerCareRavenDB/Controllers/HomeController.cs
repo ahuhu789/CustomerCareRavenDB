@@ -54,10 +54,14 @@ public class HomeController : Controller
                 vm.FeedbacksCount = await session.Query<Feedback>().CountAsync(cancellationToken);
 
                 // Lấy các dữ liệu gần nhất để hiển thị minh họa luồng
-                vm.RecentCustomers = await session.Query<Customer>().Take(5).ToListAsync(cancellationToken);
-                vm.RecentAppointments = await session.Query<Appointment>().Take(5).ToListAsync(cancellationToken);
-                vm.RecentHistories = await session.Query<ServiceHistory>().Take(5).ToListAsync(cancellationToken);
-                vm.RecentFeedbacks = await session.Query<Feedback>().Take(5).ToListAsync(cancellationToken);
+                vm.RecentCustomers = await session.Query<Customer>()
+                    .OrderByDescending(c => c.CreatedAt).Take(5).ToListAsync(cancellationToken);
+                vm.RecentAppointments = await session.Query<Appointment>()
+                    .OrderByDescending(a => a.AppointmentDate).Take(5).ToListAsync(cancellationToken);
+                vm.RecentHistories = await session.Query<ServiceHistory>()
+                    .OrderByDescending(h => h.ServiceDate).Take(5).ToListAsync(cancellationToken);
+                vm.RecentFeedbacks = await session.Query<Feedback>()
+                    .OrderByDescending(f => f.CreatedAt).Take(5).ToListAsync(cancellationToken);
             }
             else
             {
