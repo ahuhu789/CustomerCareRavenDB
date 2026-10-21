@@ -35,4 +35,10 @@ public class RavenSettings
     /// Mật khẩu chứng chỉ (nếu có). Dùng chung cho CertificateBase64 và CertificatePath.
     /// </summary>
     public string? CertificatePassword { get; set; }
+
+    /// <summary>
+    /// Tự tạo database khi khởi động nếu chưa có (cần quyền Operator trên RavenDB).
+    /// Nếu không đủ quyền nhưng database đã tồn tại thì ứng dụng vẫn tiếp tục.
+    /// </summary>
+    public bool EnsureDatabaseOnStartup { get; set; } = true;
 }

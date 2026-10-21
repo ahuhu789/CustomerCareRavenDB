@@ -27,12 +27,21 @@ using (var scope = app.Services.CreateScope())
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     var context = scope.ServiceProvider.GetRequiredService<IRavenDbContext>();
     var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+    var ravenSettings = scope.ServiceProvider
+        .GetRequiredService<Microsoft.Extensions.Options.IOptions<RavenSettings>>().Value;
     var startupStep = "kiểm tra/tạo database";
 
     try
     {
-        logger.LogInformation("Đang kiểm tra kết nối và cấu trúc cơ sở dữ liệu RavenDB...");
-        await context.EnsureDatabaseExistsAsync();
+        if (ravenSettings.EnsureDatabaseOnStartup)
+        {
+            logger.LogInformation("Đang kiểm tra kết nối và cấu trúc cơ sở dữ liệu RavenDB...");
+            await context.EnsureDatabaseExistsAsync();
+        }
+        else
+        {
+            logger.LogInformation("Bỏ qua bước tạo database (RavenSettings:EnsureDatabaseOnStartup=false).");
+        }
 
         // Đăng ký Static Index tự động
         startupStep = "triển khai Static Index";
@@ -42,8 +51,11 @@ using (var scope = app.Services.CreateScope())
             context.Store);
         logger.LogInformation("Static Index đã sẵn sàng.");
 
-        // Nạp dữ liệu mẫu khi chạy Development hoặc có tham số dòng lệnh --seed (seeder tự bỏ qua nếu đã có dữ liệu)
-        if (args.Contains("--seed") || app.Environment.IsDevelopment())
+        // Nạp dữ liệu mẫu khi chạy Development, có tham số --seed, hoặc cấu hình Seed:OnStartup=true
+        // (biến môi trường Seed__OnStartup=true). Seeder idempotent: tự bỏ qua nếu đã có dữ liệu mẫu.
+        if (args.Contains("--seed")
+            || app.Environment.IsDevelopment()
+            || app.Configuration.GetValue<bool>("Seed:OnStartup"))
         {
             startupStep = "nạp dữ liệu mẫu (seeding)";
             logger.LogInformation("Thực hiện kiểm tra và nạp dữ liệu mẫu (Seeding)...");

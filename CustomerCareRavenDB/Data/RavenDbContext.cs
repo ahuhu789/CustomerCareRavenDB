@@ -242,8 +242,33 @@ public class RavenDbContext : IRavenDbContext
         }
         catch (Exception ex)
         {
+            // Chứng chỉ quyền User (không phải Operator) không được liệt kê/tạo database ở cấp server.
+            // Nếu database đã tồn tại và truy cập được thì vẫn tiếp tục.
+            if (await DatabaseIsAccessibleAsync(targetDb, cancellationToken))
+            {
+                _logger?.LogWarning(
+                    "Không kiểm tra/tạo được database '{Database}' ở cấp server ({Message}), " +
+                    "nhưng database đã tồn tại và truy cập được — tiếp tục khởi động.",
+                    targetDb, ex.Message);
+                return;
+            }
+
             _logger?.LogError(ex, "Không thể tạo database '{Database}': {Message}", targetDb, ex.Message);
             throw new InvalidOperationException($"Lỗi khi kiểm tra hoặc tạo database '{targetDb}': {ex.Message}", ex);
+        }
+    }
+
+    private async Task<bool> DatabaseIsAccessibleAsync(string database, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _store.Maintenance.ForDatabase(database)
+                .SendAsync(new GetStatisticsOperation(), cancellationToken);
+            return true;
+        }
+        catch
+        {
+            return false;
         }
     }
 
