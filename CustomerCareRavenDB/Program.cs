@@ -1,6 +1,8 @@
 using CustomerCareRavenDB.Data;
 using CustomerCareRavenDB.Data.Validation;
 using CustomerCareRavenDB.Indexes;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Raven.Client.Documents.Indexes;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,9 +33,19 @@ builder.Services.AddScoped<IDatabaseSeeder, DatabaseSeeder>();
 // 4. Đăng ký MVC Controllers & Views
 builder.Services.AddControllersWithViews();
 
+// 5. Data Protection (anti-forgery token, TempData): lưu khóa vào RavenDB để không bị mất
+//    khi container khởi động lại. Tắt bằng DataProtection:PersistKeysToRavenDb=false.
+builder.Services.AddDataProtection().SetApplicationName("CustomerCareRavenDB");
+if (builder.Configuration.GetValue("DataProtection:PersistKeysToRavenDb", true))
+{
+    builder.Services.AddSingleton<RavenDbXmlRepository>();
+    builder.Services.AddOptions<KeyManagementOptions>()
+        .Configure<RavenDbXmlRepository>((options, repository) => options.XmlRepository = repository);
+}
+
 var app = builder.Build();
 
-// 5. Khởi tạo cơ sở dữ liệu và Index khi ứng dụng khởi động
+// 6. Khởi tạo cơ sở dữ liệu và Index khi ứng dụng khởi động
 using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
@@ -87,7 +99,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// 6. Cấu hình HTTP request pipeline
+// 7. Cấu hình HTTP request pipeline
 // Sau reverse proxy (Render), đặt ASPNETCORE_FORWARDEDHEADERS_ENABLED=true: ASP.NET Core tự thêm
 // ForwardedHeaders middleware ở đầu pipeline, tin X-Forwarded-For/X-Forwarded-Proto nên Request.IsHttps đúng.
 if (!app.Environment.IsDevelopment())
