@@ -5,6 +5,18 @@ using Raven.Client.Documents.Indexes;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 0. Hosting cho container/PaaS (Render): lắng nghe trên cổng của biến môi trường PORT nếu có.
+//    Khi chạy local (không có PORT) vẫn dùng launchSettings.json / ASPNETCORE_URLS như cũ.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port))
+{
+    if (!int.TryParse(port, out var portNumber) || portNumber is < 1 or > 65535)
+    {
+        throw new InvalidOperationException($"Biến môi trường PORT không hợp lệ: '{port}'.");
+    }
+    builder.WebHost.UseUrls($"http://0.0.0.0:{portNumber}");
+}
+
 // 1. Đăng ký cấu hình RavenSettings từ appsettings.json
 builder.Services.Configure<RavenSettings>(
     builder.Configuration.GetSection(RavenSettings.SectionName));
@@ -76,17 +88,47 @@ using (var scope = app.Services.CreateScope())
 }
 
 // 6. Cấu hình HTTP request pipeline
+// Sau reverse proxy (Render), đặt ASPNETCORE_FORWARDEDHEADERS_ENABLED=true: ASP.NET Core tự thêm
+// ForwardedHeaders middleware ở đầu pipeline, tin X-Forwarded-For/X-Forwarded-Proto nên Request.IsHttps đúng.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Trong container, TLS do proxy phía trước (Render) xử lý và proxy đã tự chuyển HTTP -> HTTPS;
+// app chỉ lắng nghe HTTP nên bỏ UseHttpsRedirection (tránh cảnh báo "Failed to determine the https port").
+// Bật lại bằng HttpsRedirection:Enabled=true nếu cần.
+var runningInContainer = string.Equals(
+    Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), "true", StringComparison.OrdinalIgnoreCase);
+if (app.Configuration.GetValue("HttpsRedirection:Enabled", !runningInContainer))
+{
+    app.UseHttpsRedirection();
+}
 app.UseRouting();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+// Health check cho Render: 200 khi RavenDB phản hồi, 503 nếu không (giới hạn 5 giây).
+app.MapGet("/healthz", async (IRavenDbContext ravenContext, CancellationToken requestAborted) =>
+{
+    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(requestAborted);
+    timeout.CancelAfter(TimeSpan.FromSeconds(5));
+
+    bool healthy;
+    try
+    {
+        healthy = await ravenContext.PingAsync(timeout.Token).WaitAsync(timeout.Token);
+    }
+    catch (OperationCanceledException)
+    {
+        healthy = false;
+    }
+
+    var body = new { status = healthy ? "Healthy" : "Unhealthy", database = ravenContext.DatabaseName };
+    return healthy ? Results.Ok(body) : Results.Json(body, statusCode: StatusCodes.Status503ServiceUnavailable);
+});
 
 app.MapControllerRoute(
     name: "default",
