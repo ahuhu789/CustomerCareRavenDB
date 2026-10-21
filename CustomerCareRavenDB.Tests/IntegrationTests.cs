@@ -21,7 +21,7 @@ public class IntegrationTests : IAsyncLifetime
     {
         var settings = Options.Create(new RavenSettings
         {
-            Urls = ["http://127.0.0.1:8080"],
+            Urls = [TestSettings.RavenUrl],
             DatabaseName = _testDbName
         });
 
