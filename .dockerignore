@@ -1,0 +1,24 @@
+# Chỉ cần thư mục CustomerCareRavenDB/ để build image
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/*.user
+.git/
+.github/
+CustomerCareRavenDB.Tests/
+Docs/
+**/Docs/
+*.md
+render.yaml
+Dockerfile
+.dockerignore
+
+# Không bao giờ đưa bí mật/chứng chỉ vào image
+.env
+.env.*
+**/*.pfx
+**/*.p12
+**/*.key
+**/*.crt
+**/*.cer
