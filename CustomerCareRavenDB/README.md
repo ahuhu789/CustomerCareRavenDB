@@ -189,7 +189,7 @@ dotnet build CustomerCareRavenDB.sln
 ```
 
 ### 4. Chạy toàn bộ kiểm thử tự động
-Các bài test tích hợp cần RavenDB Server đang chạy tại `http://127.0.0.1:8080`.
+Các bài test tích hợp cần RavenDB Server đang chạy tại `http://127.0.0.1:8080` (đổi bằng biến môi trường `RAVEN_TEST_URL`).
 ```powershell
 dotnet test CustomerCareRavenDB.sln
 ```
@@ -200,11 +200,82 @@ dotnet run --project CustomerCareRavenDB
 ```
 Truy cập vào địa chỉ hiển thị trên màn hình console (ví dụ: `http://localhost:5069`) để trải nghiệm Dashboard và trình thử nghiệm truy vấn RQL.
 
-Ở môi trường Development, ứng dụng tự tạo database, triển khai index và nạp dữ liệu mẫu; ở môi trường khác thêm tham số `--seed` để nạp dữ liệu mẫu. Trình thử RQL (`/Diagnostic/ExecuteRql`) chỉ bật mặc định trong Development (cấu hình `Diagnostics:EnableRqlEndpoint`).
+Ở môi trường Development, ứng dụng tự tạo database, triển khai index và nạp dữ liệu mẫu; ở môi trường khác thêm tham số `--seed` hoặc đặt `Seed__OnStartup=true` để nạp dữ liệu mẫu. Trình thử RQL (`/Diagnostic/ExecuteRql`) chỉ bật mặc định trong Development (cấu hình `Diagnostics:EnableRqlEndpoint`).
 
 ---
 
-## G. Quy Ước Tích Hợp Dành Cho Quốc và Đạt (Integration Contract)
+## G. Triển Khai (Deploy) lên Render Free
+
+### 1. Kiến trúc
+Ứng dụng được deploy thành **một web service Free duy nhất** trên Render (region Singapore), dùng `Dockerfile` ở thư mục gốc:
+
+```
+Internet ──HTTPS──> Render proxy ──HTTP :$PORT (10000)──> ASP.NET Core app ──http://127.0.0.1:8080──> RavenDB (cùng container)
+```
+
+- RavenDB Server chạy **trong cùng container**, không bảo mật nhưng **chỉ bind `127.0.0.1`** (HTTP 8080, TCP 38888) và không được EXPOSE, nên không thể truy cập từ Internet. Chỉ app trong container gọi được.
+- Lý do không tách RavenDB thành service riêng: theo tài liệu Render, *web service Free không nhận được private network traffic*, và Free không có persistent disk.
+- `docker/entrypoint.sh` khởi động RavenDB trước, chờ `GET /build/version` trả về 200, rồi mới chạy app. Nếu một trong hai tiến trình dừng, container thoát để Render khởi động lại.
+- App tự tạo database `CustomerCareDB`, triển khai index và **nạp dữ liệu mẫu mỗi lần khởi động** (`Seed__OnStartup=true`, seeder idempotent).
+- RavenDB Studio **không khả dụng** trên bản deploy (`RavenSettings__StudioEnabled=false`); giao diện hiển thị nút "Studio không khả dụng" thay cho liên kết.
+
+### 2. Giới hạn cần biết (gói Free)
+| Giới hạn | Ảnh hưởng |
+|---|---|
+| Không có persistent disk | **Mọi dữ liệu thêm/sửa sẽ mất** khi service restart, redeploy hoặc spin-down; sau đó dữ liệu mẫu được nạp lại. Chỉ phù hợp demo. |
+| Spin-down sau 15 phút không có request | Lần truy cập tiếp theo phải chờ khởi động lại (với 0.1 CPU: ~1-2 phút, RavenDB khởi động trước rồi tới app). |
+| 512 MB RAM, 0.1 CPU | Đo thực tế với `--memory=512m --cpus=0.1`: ~280-450 MiB (phần lớn là page cache của RavenDB, có thể thu hồi), không bị OOM khi tải 1500 request đồng thời. Trang đầu tiên sau khởi động chậm. |
+| Render có thể restart service Free bất kỳ lúc nào | Giống mất dữ liệu ở trên. |
+| Data Protection key lưu trong RavenDB | Mất khi restart → form đang mở trước khi restart cần tải lại trang (lỗi antiforgery). Key lưu không mã hóa (chỉ phù hợp demo). |
+
+### 3. Các bước deploy trên Render
+1. Đẩy code lên nhánh `main` của GitHub.
+2. Render Dashboard → **New → Blueprint** → chọn repo này (Render đọc `render.yaml`). Hoặc tạo thủ công **New → Web Service** với:
+   - Runtime/Language: **Docker**
+   - Dockerfile Path: `./Dockerfile`
+   - Docker Build Context Directory: `.` (thư mục gốc repo)
+   - Instance Type: **Free**, Region: **Singapore**, Branch: `main`
+   - Health Check Path: `/healthz`
+3. Không cần khai báo bí mật nào. Các biến môi trường (đã có mặc định trong `Dockerfile`, `render.yaml` khai báo lại cho rõ):
+
+| Biến | Giá trị | Ý nghĩa |
+|---|---|---|
+| `PORT` | Render tự đặt (10000) | Cổng app lắng nghe (`0.0.0.0:$PORT`) |
+| `ASPNETCORE_ENVIRONMENT` | `Production` | |
+| `ASPNETCORE_FORWARDEDHEADERS_ENABLED` | `true` | Tin `X-Forwarded-Proto/For` từ proxy Render (HTTPS, HSTS đúng) |
+| `RavenSettings__Urls__0` | `http://127.0.0.1:8080` | RavenDB nhúng |
+| `RavenSettings__DatabaseName` | `CustomerCareDB` | |
+| `RavenSettings__StudioEnabled` | `false` | Ẩn liên kết Studio |
+| `Seed__OnStartup` | `true` | Nạp dữ liệu mẫu khi khởi động |
+| `EMBEDDED_RAVENDB` | `true` | `false` = không chạy RavenDB nhúng, dùng RavenDB bên ngoài |
+
+4. Kiểm tra: `https://<tên-service>.onrender.com/healthz` trả về `{"status":"Healthy",...}` (HTTP 200; 503 nếu RavenDB chưa sẵn sàng).
+
+`render.yaml` đặt `autoDeployTrigger: checksPass`: Render chỉ deploy commit mới trên `main` khi workflow CI pass.
+
+### 4. Chạy image cục bộ (giống Render)
+```bash
+docker build -t customercare-ravendb .
+docker run --rm -p 10000:10000 --memory=512m --cpus=0.1 customercare-ravendb
+# Mở http://localhost:10000 , health check: http://localhost:10000/healthz
+```
+
+### 5. (Tùy chọn) Dùng RavenDB bên ngoài có chứng chỉ
+Nếu sau này có RavenDB bảo mật (RavenDB Cloud hoặc server riêng), đặt `EMBEDDED_RAVENDB=false`, `RavenSettings__Urls__0=https://...`, `RavenSettings__StudioEnabled=true` và chứng chỉ client dạng Base64 (ưu tiên hơn `CertificatePath`), khai báo là biến bí mật, không commit:
+```bash
+base64 -w0 client-certificate.pfx            # Linux
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("client-certificate.pfx"))   # PowerShell
+```
+→ `RavenSettings__CertificateBase64=<chuỗi base64>`, `RavenSettings__CertificatePassword=<mật khẩu nếu có>`. Chứng chỉ cần tối thiểu quyền **Admin trên database** để deploy index (ReadWrite không đủ). Nếu chứng chỉ không có quyền tạo database nhưng database đã tồn tại, app vẫn tiếp tục.
+
+### 6. CI (GitHub Actions)
+`.github/workflows/ci.yml` chạy khi push/PR vào `main`:
+- **Build & test**: .NET 10 + RavenDB service container (`ravendb/ravendb:ubuntu-latest`, cổng 8080); test đọc URL từ `RAVEN_TEST_URL` (mặc định `http://127.0.0.1:8080`).
+- **Docker smoke test**: build image, chạy với `--memory=512m` và kiểm tra `/healthz`, `/`, `/Customers`.
+
+---
+
+## H. Quy Ước Tích Hợp Dành Cho Quốc và Đạt (Integration Contract)
 
 1. **Sử dụng Data Layer:**
    - Luôn tiêm `IRavenDbContext` qua constructor của Controller.
@@ -220,14 +291,14 @@ Truy cập vào địa chỉ hiển thị trên màn hình console (ví dụ: `h
 
 ---
 
-## H. Hạn Chế Đã Biết (Known Limitations)
+## I. Hạn Chế Đã Biết (Known Limitations)
 
 1. Hệ thống hiện sử dụng xác thực kết nối nội bộ không bảo mật (Unsecured HTTP mode) cho môi trường Development trường học. Nếu triển khai Production qua Internet có bảo mật HTTPS, cần cấp file chứng chỉ `.pfx` vào thuộc tính `CertificatePath` trong `appsettings.json`.
 2. Chưa triển khai cơ chế phân quyền tài khoản người dùng đăng nhập (sẽ bổ sung nếu có yêu cầu thêm từ giảng viên).
 
 ---
 
-## I. Các Bước Tiếp Theo (Next Steps)
+## J. Các Bước Tiếp Theo (Next Steps)
 
 1. **Cả nhóm:** Kiểm thử chéo toàn bộ 6 phân hệ trên nhánh `main` (các module của Quốc và Đạt đã được merge qua PR #2 và PR #3).
 2. **Quốc / Đạt:** Bổ sung kiểm tra tham chiếu khi xóa khách hàng (lịch hẹn/lịch sử/phản hồi đang tham chiếu) và phân trang cho các danh sách lớn.
@@ -235,7 +306,7 @@ Truy cập vào địa chỉ hiển thị trên màn hình console (ví dụ: `h
 
 ---
 
-## J. Thông Tin Cập Nhật Lần Cuối (Last Update)
+## K. Thông Tin Cập Nhật Lần Cuối (Last Update)
 
 - **Ngày hoàn thành bàn giao:** 17/10/2026
 - **Branch bàn giao:** `feature/thanh-ravendb-foundation`
