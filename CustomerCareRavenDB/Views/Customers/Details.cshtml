@@ -79,14 +79,12 @@
         </div>
 
         <div class="card-footer">
-            <a asp-action="Edit"
-               asp-route-id="@Model.Id"
+            <a href="@(Url.Action("Edit") + "?id=" + Uri.EscapeDataString(Model.Id))"
                class="btn btn-warning">
                 Chỉnh sửa
             </a>
 
-            <a asp-action="Delete"
-               asp-route-id="@Model.Id"
+            <a href="@(Url.Action("Delete") + "?id=" + Uri.EscapeDataString(Model.Id))"
                class="btn btn-danger">
                 Xóa khách hàng
             </a>

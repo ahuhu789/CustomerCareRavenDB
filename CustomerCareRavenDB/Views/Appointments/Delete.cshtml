@@ -47,10 +47,10 @@
 </div>
 
 <form asp-action="Delete"
-      asp-route-id="@Model.Id"
       method="post">
 
     @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
 
     <button type="submit" class="btn btn-danger">
         Xác nhận hủy lịch

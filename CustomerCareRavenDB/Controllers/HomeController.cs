@@ -26,11 +26,13 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
+        // URL RavenDB/Studio lấy từ cấu hình RavenSettings:Urls (qua DocumentStore), không hardcode.
+        var ravenUrl = (_ravenContext.Store.Urls.FirstOrDefault() ?? string.Empty).TrimEnd('/');
         var vm = new DashboardViewModel
         {
             DatabaseName = _ravenContext.DatabaseName,
-            RavenUrl = _ravenContext.Store.Urls.FirstOrDefault() ?? "http://127.0.0.1:8080",
-            StudioUrl = $"{_ravenContext.Store.Urls.FirstOrDefault() ?? "http://127.0.0.1:8080"}/studio/index.html#databases/documents?&database={_ravenContext.DatabaseName}"
+            RavenUrl = ravenUrl,
+            StudioUrl = $"{ravenUrl}/studio/index.html#databases/documents?&database={Uri.EscapeDataString(_ravenContext.DatabaseName)}"
         };
 
         try
@@ -52,14 +54,18 @@ public class HomeController : Controller
                 vm.FeedbacksCount = await session.Query<Feedback>().CountAsync(cancellationToken);
 
                 // Lấy các dữ liệu gần nhất để hiển thị minh họa luồng
-                vm.RecentCustomers = await session.Query<Customer>().Take(5).ToListAsync(cancellationToken);
-                vm.RecentAppointments = await session.Query<Appointment>().Take(5).ToListAsync(cancellationToken);
-                vm.RecentHistories = await session.Query<ServiceHistory>().Take(5).ToListAsync(cancellationToken);
-                vm.RecentFeedbacks = await session.Query<Feedback>().Take(5).ToListAsync(cancellationToken);
+                vm.RecentCustomers = await session.Query<Customer>()
+                    .OrderByDescending(c => c.CreatedAt).Take(5).ToListAsync(cancellationToken);
+                vm.RecentAppointments = await session.Query<Appointment>()
+                    .OrderByDescending(a => a.AppointmentDate).Take(5).ToListAsync(cancellationToken);
+                vm.RecentHistories = await session.Query<ServiceHistory>()
+                    .OrderByDescending(h => h.ServiceDate).Take(5).ToListAsync(cancellationToken);
+                vm.RecentFeedbacks = await session.Query<Feedback>()
+                    .OrderByDescending(f => f.CreatedAt).Take(5).ToListAsync(cancellationToken);
             }
             else
             {
-                vm.StatusMessage = "Không thể kết nối tới RavenDB Server. Vui lòng đảm bảo Raven.Server đang chạy trên http://127.0.0.1:8080.";
+                vm.StatusMessage = $"Không thể kết nối tới RavenDB Server. Vui lòng đảm bảo Raven.Server đang chạy trên {ravenUrl} (cấu hình RavenSettings:Urls).";
             }
         }
         catch (Exception ex)

@@ -104,14 +104,12 @@
                             </td>
                             <td>@appointment.Note</td>
                             <td style="min-width: 190px">
-                                <a asp-action="Details"
-                                   asp-route-id="@appointment.Id"
+                                <a href="@(Url.Action("Details") + "?id=" + Uri.EscapeDataString(appointment.Id))"
                                    class="btn btn-sm btn-info">
                                     Chi tiết
                                 </a>
 
-                                <a asp-action="Edit"
-                                   asp-route-id="@appointment.Id"
+                                <a href="@(Url.Action("Edit") + "?id=" + Uri.EscapeDataString(appointment.Id))"
                                    class="btn btn-sm btn-warning">
                                     Sửa
                                 </a>
@@ -119,8 +117,7 @@
                                 @if (appointment.Status != "Cancelled"
                                                         && appointment.Status != "Completed")
                                 {
-                                    <a asp-action="Delete"
-                                       asp-route-id="@appointment.Id"
+                                    <a href="@(Url.Action("Delete") + "?id=" + Uri.EscapeDataString(appointment.Id))"
                                        class="btn btn-sm btn-danger">
                                         Hủy lịch
                                     </a>

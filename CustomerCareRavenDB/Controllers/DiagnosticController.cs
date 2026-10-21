@@ -1,7 +1,9 @@
 using CustomerCareRavenDB.Data;
 using CustomerCareRavenDB.Data.Validation;
 using CustomerCareRavenDB.Models;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Raven.Client.Documents;
 
 namespace CustomerCareRavenDB.Controllers;
@@ -12,14 +14,34 @@ namespace CustomerCareRavenDB.Controllers;
 /// </summary>
 public class DiagnosticController : Controller
 {
+    /// <summary>
+    /// Khóa cấu hình bật/tắt endpoint chạy RQL trực tiếp.
+    /// Mặc định: bật ở Development, tắt ở các môi trường khác.
+    /// </summary>
+    public const string EnableRqlEndpointKey = "Diagnostics:EnableRqlEndpoint";
+
+    // Chỉ cho phép truy vấn đọc: chặn mệnh đề "update { ... }" (patch by query).
+    private static readonly Regex UpdateClause = new(@"\bupdate\s*\{", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     private readonly IRavenDbContext _context;
     private readonly IDocumentValidator _validator;
+    private readonly IConfiguration _configuration;
+    private readonly IWebHostEnvironment _environment;
 
-    public DiagnosticController(IRavenDbContext context, IDocumentValidator validator)
+    public DiagnosticController(
+        IRavenDbContext context,
+        IDocumentValidator validator,
+        IConfiguration configuration,
+        IWebHostEnvironment environment)
     {
         _context = context;
         _validator = validator;
+        _configuration = configuration;
+        _environment = environment;
     }
+
+    private bool IsRqlEndpointEnabled =>
+        _configuration.GetValue<bool?>(EnableRqlEndpointKey) ?? _environment.IsDevelopment();
 
     [HttpGet]
     public async Task<IActionResult> Ping()
@@ -34,24 +56,39 @@ public class DiagnosticController : Controller
         });
     }
 
-    [HttpGet]
-    public async Task<IActionResult> ExecuteRql(string? query)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ExecuteRql([FromForm] string? query)
     {
+        if (!IsRqlEndpointEnabled)
+        {
+            return NotFound(new { error = $"Endpoint RQL đang bị tắt. Bật bằng cấu hình '{EnableRqlEndpointKey}' = true." });
+        }
+
         if (string.IsNullOrWhiteSpace(query))
         {
             return BadRequest(new { error = "Tham số RQL query không được để trống." });
+        }
+
+        if (UpdateClause.IsMatch(query))
+        {
+            return BadRequest(new { query, error = "Chỉ cho phép truy vấn đọc (không hỗ trợ mệnh đề 'update')." });
         }
 
         try
         {
             using var session = _context.OpenAsyncSession();
             var results = await session.Advanced.AsyncRawQuery<dynamic>(query).ToListAsync();
-            return Json(new
+
+            // Kết quả dynamic của RavenDB là object Newtonsoft (JObject),
+            // System.Text.Json không tuần tự hóa được nên phải dùng Newtonsoft.Json.
+            var json = JsonConvert.SerializeObject(new
             {
                 query,
                 count = results.Count,
                 results
             });
+            return Content(json, "application/json");
         }
         catch (Exception ex)
         {
@@ -68,6 +105,7 @@ public class DiagnosticController : Controller
     /// Quốc và Đạt có thể gọi endpoint này để thử nghiệm logic nghiệp vụ.
     /// </summary>
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ValidateFeedbackModel([FromBody] Feedback feedback)
     {
         using var session = _context.OpenAsyncSession();
