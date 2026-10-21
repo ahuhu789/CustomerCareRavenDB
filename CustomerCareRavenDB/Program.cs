@@ -94,8 +94,13 @@ using (var scope = app.Services.CreateScope())
             "KHỞI TẠO RAVENDB THẤT BẠI ở bước '{Step}' (Urls: {Urls}, Database: {Database}): {Message}. " +
             "Ứng dụng vẫn chạy nhưng database/index/dữ liệu mẫu có thể chưa sẵn sàng; " +
             "các trang truy vấn RavenDB sẽ lỗi cho đến khi khắc phục. " +
-            "Kiểm tra RavenDB Server đang chạy và cấu hình RavenSettings (Urls, DatabaseName, CertificatePath).",
-            startupStep, string.Join(", ", context.Store.Urls), context.DatabaseName, ex.Message);
+            "Kiểm tra RavenDB Server đang chạy và cấu hình RavenSettings " +
+            "(Urls, DatabaseName, CertificateBase64/CertificatePath, CertificatePassword).{Hint}",
+            startupStep, string.Join(", ", context.Store.Urls), context.DatabaseName, ex.Message,
+            ex is Raven.Client.Exceptions.Security.AuthorizationException
+                ? " Client certificate thiếu quyền: cần tối thiểu quyền Admin trên database này để deploy index " +
+                  "(chứng chỉ ReadWrite không đủ); trên RavenDB Cloud hãy dùng chứng chỉ Admin/Operator tải về từ portal."
+                : string.Empty);
     }
 }
 
