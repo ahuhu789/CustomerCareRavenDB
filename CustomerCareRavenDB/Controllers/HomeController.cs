@@ -2,6 +2,7 @@ using System.Diagnostics;
 using CustomerCareRavenDB.Data;
 using CustomerCareRavenDB.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Raven.Client.Documents;
 using Raven.Client.Documents.Operations;
 using Raven.Client.ServerWide.Operations;
@@ -13,12 +14,15 @@ public class HomeController : Controller
     private readonly IRavenDbContext _ravenContext;
     private readonly IDatabaseSeeder _seeder;
     private readonly ILogger<HomeController> _logger;
+    private readonly RavenSettings _ravenSettings;
 
     public HomeController(
         IRavenDbContext ravenContext,
         IDatabaseSeeder seeder,
-        ILogger<HomeController> logger)
+        ILogger<HomeController> logger,
+        IOptions<RavenSettings> ravenOptions)
     {
+        _ravenSettings = ravenOptions.Value;
         _ravenContext = ravenContext;
         _seeder = seeder;
         _logger = logger;
@@ -32,7 +36,8 @@ public class HomeController : Controller
         {
             DatabaseName = _ravenContext.DatabaseName,
             RavenUrl = ravenUrl,
-            StudioUrl = $"{ravenUrl}/studio/index.html#databases/documents?&database={Uri.EscapeDataString(_ravenContext.DatabaseName)}"
+            StudioUrl = $"{ravenUrl}/studio/index.html#databases/documents?&database={Uri.EscapeDataString(_ravenContext.DatabaseName)}",
+            StudioEnabled = _ravenSettings.StudioEnabled
         };
 
         try

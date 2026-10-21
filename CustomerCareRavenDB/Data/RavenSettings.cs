@@ -41,4 +41,11 @@ public class RavenSettings
     /// Nếu không đủ quyền nhưng database đã tồn tại thì ứng dụng vẫn tiếp tục.
     /// </summary>
     public bool EnsureDatabaseOnStartup { get; set; } = true;
+
+    /// <summary>
+    /// Hiển thị liên kết RavenDB Studio trên giao diện (mặc định true).
+    /// Đặt false khi RavenDB chỉ chạy nội bộ (vd. container Render, RavenDB bind 127.0.0.1)
+    /// vì trình duyệt của người dùng không thể truy cập Studio.
+    /// </summary>
+    public bool StudioEnabled { get; set; } = true;
 }

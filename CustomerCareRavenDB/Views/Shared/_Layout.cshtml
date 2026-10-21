@@ -60,9 +60,18 @@
                         <span class="badge rounded-pill text-bg-secondary bg-opacity-25 border border-secondary-subtle fw-normal align-self-start align-self-lg-center px-3 py-2">
                             <i class="bi bi-database-check me-1" aria-hidden="true"></i> @ravenSettings.DatabaseName
                         </span>
-                        <a class="btn btn-warning btn-sm fw-semibold" href="@studioUrl" target="_blank" rel="noopener noreferrer">
-                            <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i> RavenDB Studio
-                        </a>
+                        @if (ravenSettings.StudioEnabled)
+                        {
+                            <a class="btn btn-warning btn-sm fw-semibold" href="@studioUrl" target="_blank" rel="noopener noreferrer">
+                                <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i> RavenDB Studio
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="btn btn-outline-secondary btn-sm disabled" title="RavenDB chỉ chạy nội bộ trong container, Studio không được mở ra Internet.">
+                                <i class="bi bi-lock me-1" aria-hidden="true"></i> Studio không khả dụng
+                            </span>
+                        }
                     </div>
                 </div>
             </div>

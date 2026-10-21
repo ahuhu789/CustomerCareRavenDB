@@ -6,6 +6,7 @@ public class DashboardViewModel
     public string DatabaseName { get; set; } = string.Empty;
     public string RavenUrl { get; set; } = string.Empty;
     public string StudioUrl { get; set; } = string.Empty;
+    public bool StudioEnabled { get; set; } = true;
     public string ServerVersion { get; set; } = string.Empty;
 
     public int CustomersCount { get; set; }
