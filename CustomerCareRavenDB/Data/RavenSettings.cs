@@ -25,7 +25,14 @@ public class RavenSettings
     public string? CertificatePath { get; set; }
 
     /// <summary>
-    /// Mật khẩu chứng chỉ (nếu có).
+    /// Nội dung chứng chỉ client (.pfx) mã hóa Base64 (tùy chọn).
+    /// Dùng cho môi trường PaaS/container (vd. Render) khi không tiện mount file.
+    /// Nếu có giá trị thì được ưu tiên hơn <see cref="CertificatePath"/>.
+    /// </summary>
+    public string? CertificateBase64 { get; set; }
+
+    /// <summary>
+    /// Mật khẩu chứng chỉ (nếu có). Dùng chung cho CertificateBase64 và CertificatePath.
     /// </summary>
     public string? CertificatePassword { get; set; }
 }
