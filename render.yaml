@@ -1,0 +1,33 @@
+# Render Blueprint - https://render.com/docs/blueprint-spec
+# MỘT web service Free duy nhất chạy cả RavenDB (nội bộ, 127.0.0.1:8080) và ứng dụng (cổng $PORT).
+# Lý do: web service Free không nhận được private network traffic, nên không thể tách RavenDB
+# thành service riêng. Free không có persistent disk -> dữ liệu mất khi restart/redeploy/spin-down,
+# ứng dụng tự nạp lại dữ liệu mẫu mỗi lần khởi động (Seed__OnStartup=true).
+services:
+  - type: web
+    name: customercare-ravendb
+    runtime: docker
+    plan: free
+    region: singapore
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    # Chỉ deploy khi workflow CI trên GitHub đã pass.
+    autoDeployTrigger: checksPass
+    envVars:
+      # Render tự đặt PORT=10000; app tự bind 0.0.0.0:$PORT.
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+        value: "true"
+      - key: RavenSettings__Urls__0
+        value: http://127.0.0.1:8080
+      - key: RavenSettings__DatabaseName
+        value: CustomerCareDB
+      - key: RavenSettings__StudioEnabled
+        value: "false"
+      - key: Seed__OnStartup
+        value: "true"
+      - key: EMBEDDED_RAVENDB
+        value: "true"

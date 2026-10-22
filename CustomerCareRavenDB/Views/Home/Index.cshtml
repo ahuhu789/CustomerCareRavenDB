@@ -13,9 +13,18 @@
                 <small class="opacity-75">Kiến trúc cơ sở dữ liệu và Data Layer nền tảng được phát triển bởi: <strong>Thanh</strong>.</small>
             </div>
             <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                <a href="@Model.StudioUrl" target="_blank" class="btn btn-warning btn-lg fw-semibold shadow-sm">
-                    <i class="bi bi-speedometer2"></i> Mở RavenDB Studio
-                </a>
+                @if (Model.StudioEnabled)
+                {
+                    <a href="@Model.StudioUrl" target="_blank" class="btn btn-warning btn-lg fw-semibold shadow-sm">
+                        <i class="bi bi-speedometer2"></i> Mở RavenDB Studio
+                    </a>
+                }
+                else
+                {
+                    <span class="btn btn-outline-light btn-lg disabled" title="RavenDB chỉ chạy nội bộ trong container (127.0.0.1), không mở ra Internet.">
+                        <i class="bi bi-lock"></i> RavenDB Studio không khả dụng trên bản deploy
+                    </span>
+                }
             </div>
         </div>
     </div>

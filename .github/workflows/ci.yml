@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build & test (.NET 10 + RavenDB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      ravendb:
+        image: ravendb/ravendb:ubuntu-latest
+        ports:
+          - 8080:8080
+        env:
+          RAVEN_Setup_Mode: None
+          RAVEN_Security_UnsecuredAccessAllowed: PublicNetwork
+          RAVEN_License_Eula_Accepted: "true"
+    env:
+      RAVEN_TEST_URL: http://127.0.0.1:8080
+      DOTNET_NOLOGO: "true"
+      DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Wait for RavenDB
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS "$RAVEN_TEST_URL/build/version"; then echo; exit 0; fi
+            sleep 2
+          done
+          echo "RavenDB did not become ready" >&2
+          exit 1
+
+      - name: Restore
+        run: dotnet restore CustomerCareRavenDB.sln
+
+      - name: Build
+        run: dotnet build CustomerCareRavenDB.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test CustomerCareRavenDB.sln -c Release --no-build --verbosity normal
+
+  docker:
+    name: Docker image smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t customercare-ravendb:ci .
+
+      - name: Run with Render Free limits and check /healthz
+        run: |
+          docker run -d --name app --memory=512m -p 10000:10000 customercare-ravendb:ci
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:10000/healthz; then
+              echo
+              curl -fsS -o /dev/null -w "/ -> %{http_code}\n" http://127.0.0.1:10000/
+              curl -fsS -o /dev/null -w "/Customers -> %{http_code}\n" http://127.0.0.1:10000/Customers
+              docker stats --no-stream app
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs app
+          exit 1
+
+      - name: Container logs
+        if: always()
+        run: docker logs app || true

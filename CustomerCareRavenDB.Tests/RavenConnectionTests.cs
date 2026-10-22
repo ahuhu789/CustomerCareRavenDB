@@ -22,7 +22,7 @@ public class RavenConnectionTests
     {
         var settings = Options.Create(new RavenSettings
         {
-            Urls = ["http://127.0.0.1:8080"],
+            Urls = [TestSettings.RavenUrl],
             DatabaseName = ""
         });
 
@@ -34,13 +34,13 @@ public class RavenConnectionTests
     {
         var settings = Options.Create(new RavenSettings
         {
-            Urls = ["http://127.0.0.1:8080"],
+            Urls = [TestSettings.RavenUrl],
             DatabaseName = "CustomerCareDB"
         });
 
         using var context = new RavenDbContext(settings);
         var isAlive = await context.PingAsync();
 
-        Assert.True(isAlive, "RavenDB server tại http://127.0.0.1:8080 phải phản hồi Ping thành công.");
+        Assert.True(isAlive, $"RavenDB server tại {TestSettings.RavenUrl} phải phản hồi Ping thành công.");
     }
 }
