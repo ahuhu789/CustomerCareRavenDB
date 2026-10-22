@@ -30,7 +30,11 @@ public abstract class TestDatabase : IAsyncLifetime
         await IndexCreation.CreateIndexesAsync(typeof(ServiceHistories_ByCustomerAndDate).Assembly, Context.Store);
         if (Seed)
             await new DatabaseSeeder(Context, Validator, NullLogger<DatabaseSeeder>.Instance).SeedAsync();
+        await InitializeAsyncExtra();
     }
+
+    /// <summary>Dữ liệu bổ sung riêng cho từng lớp test (chạy sau khi seed).</summary>
+    public virtual Task InitializeAsyncExtra() => Task.CompletedTask;
 
     public async Task DisposeAsync()
     {

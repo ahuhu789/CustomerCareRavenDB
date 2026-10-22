@@ -23,27 +23,15 @@ public class ServiceHistoriesController : Controller
         string? serviceId, DateTime? from, DateTime? to)
     {
         using var session = _context.OpenAsyncSession();
-        IQueryable<ServiceHistory> query = session.Query<ServiceHistory>();
-        if (!string.IsNullOrWhiteSpace(customerId)) query = query.Where(h => h.CustomerId == customerId);
-        if (!string.IsNullOrWhiteSpace(staffId)) query = query.Where(h => h.StaffId == staffId);
-        if (!string.IsNullOrWhiteSpace(serviceId)) query = query.Where(h => h.ServiceId == serviceId);
-        if (from.HasValue)
-        {
-            var startUtc = DateTime.SpecifyKind(from.Value.Date, DateTimeKind.Utc);
-            query = query.Where(h => h.ServiceDate >= startUtc);
-        }
-        if (to.HasValue)
-        {
-            var endUtc = DateTime.SpecifyKind(to.Value.Date.AddDays(1), DateTimeKind.Utc);
-            query = query.Where(h => h.ServiceDate < endUtc);
-        }
+        // Lọc trên static index ServiceHistories/ByCustomerAndDate (CustomerId, ServiceDate, StaffId, ServiceId).
+        var query = ServiceHistoryQueries.Filter(session, customerId, staffId, serviceId, from, to);
         ViewBag.CustomerId = customerId;
         ViewBag.StaffId = staffId;
         ViewBag.ServiceId = serviceId;
         ViewBag.From = from?.ToString("yyyy-MM-dd");
         ViewBag.To = to?.ToString("yyyy-MM-dd");
         await LoadOptionsAsync(session);
-        return View(await query.OrderByDescending(h => h.ServiceDate).ToListAsync());
+        return View(await query.ToListAsync());
     }
 
     public async Task<IActionResult> Details(string? id)
