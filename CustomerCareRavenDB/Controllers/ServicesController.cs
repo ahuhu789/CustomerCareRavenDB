@@ -28,7 +28,7 @@ public class ServicesController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<Service>(id);
+        var item = await session.LoadFromCollectionAsync<Service>(id);
         return item == null ? NotFound() : View(item);
     }
 
@@ -60,7 +60,7 @@ public class ServicesController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<Service>(id);
+        var item = await session.LoadFromCollectionAsync<Service>(id);
         if (item == null) return NotFound();
         ViewBag.DocumentId = item.Id;
         return View(new ServiceFormViewModel
@@ -79,7 +79,7 @@ public class ServicesController : Controller
         ViewBag.DocumentId = id;
         if (!ModelState.IsValid) return View(input);
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<Service>(id);
+        var item = await session.LoadFromCollectionAsync<Service>(id);
         if (item == null) return NotFound();
         item.Name = input.Name.Trim();
         item.Description = input.Description?.Trim() ?? "";
@@ -95,7 +95,7 @@ public class ServicesController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<Service>(id);
+        var item = await session.LoadFromCollectionAsync<Service>(id);
         if (item == null) return NotFound();
         var usedInAppointments = await session.Query<Appointment>()
             .Where(a => a.ServiceId == id).Take(1).ToListAsync();

@@ -65,7 +65,7 @@ public class CustomersController : Controller
 
         using var session = _context.OpenAsyncSession();
 
-        var customer = await session.LoadAsync<Customer>(id);
+        var customer = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (customer == null)
             return NotFound();
@@ -112,7 +112,7 @@ public class CustomersController : Controller
 
         using var session = _context.OpenAsyncSession();
 
-        var customer = await session.LoadAsync<Customer>(id);
+        var customer = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (customer == null)
             return NotFound();
@@ -136,7 +136,7 @@ public class CustomersController : Controller
 
         using var session = _context.OpenAsyncSession();
 
-        var existing = await session.LoadAsync<Customer>(id);
+        var existing = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (existing == null)
             return NotFound();
@@ -165,7 +165,7 @@ public class CustomersController : Controller
 
         using var session = _context.OpenAsyncSession();
 
-        var customer = await session.LoadAsync<Customer>(id);
+        var customer = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (customer == null)
             return NotFound();
@@ -180,7 +180,7 @@ public class CustomersController : Controller
     {
         using var session = _context.OpenAsyncSession();
 
-        var customer = await session.LoadAsync<Customer>(id);
+        var customer = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (customer == null)
             return NotFound();

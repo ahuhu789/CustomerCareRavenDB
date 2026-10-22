@@ -50,11 +50,11 @@ public class ServiceHistoriesController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<ServiceHistory>(id);
+        var item = await session.LoadFromCollectionAsync<ServiceHistory>(id);
         if (item == null) return NotFound();
-        ViewBag.CustomerName = (await session.LoadAsync<Customer>(item.CustomerId))?.FullName ?? item.CustomerId;
-        ViewBag.StaffName = (await session.LoadAsync<Staff>(item.StaffId))?.FullName ?? item.StaffId;
-        ViewBag.ServiceName = (await session.LoadAsync<Service>(item.ServiceId))?.Name ?? item.ServiceId;
+        ViewBag.CustomerName = (await session.LoadFromCollectionAsync<Customer>(item.CustomerId))?.FullName ?? item.CustomerId;
+        ViewBag.StaffName = (await session.LoadFromCollectionAsync<Staff>(item.StaffId))?.FullName ?? item.StaffId;
+        ViewBag.ServiceName = (await session.LoadFromCollectionAsync<Service>(item.ServiceId))?.Name ?? item.ServiceId;
         return View(item);
     }
 
@@ -77,7 +77,7 @@ public class ServiceHistoriesController : Controller
             await LoadOptionsAsync(session);
             return View(input);
         }
-        var appointment = await session.LoadAsync<Appointment>(input.AppointmentId);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(input.AppointmentId);
         if (appointment == null)
         {
             ModelState.AddModelError(nameof(input.AppointmentId), "Lịch hẹn không tồn tại.");
@@ -115,7 +115,7 @@ public class ServiceHistoriesController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<ServiceHistory>(id);
+        var item = await session.LoadFromCollectionAsync<ServiceHistory>(id);
         if (item == null) return NotFound();
         ViewBag.DocumentId = item.Id;
         await LoadOptionsAsync(session);
@@ -143,9 +143,9 @@ public class ServiceHistoriesController : Controller
             await LoadOptionsAsync(session);
             return View(input);
         }
-        var item = await session.LoadAsync<ServiceHistory>(id);
+        var item = await session.LoadFromCollectionAsync<ServiceHistory>(id);
         if (item == null) return NotFound();
-        var appointment = await session.LoadAsync<Appointment>(input.AppointmentId);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(input.AppointmentId);
         if (appointment == null)
         {
             ModelState.AddModelError(nameof(input.AppointmentId), "Lịch hẹn không tồn tại.");
@@ -177,7 +177,7 @@ public class ServiceHistoriesController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<ServiceHistory>(id);
+        var item = await session.LoadFromCollectionAsync<ServiceHistory>(id);
         if (item == null) return NotFound();
         var feedbacks = await session.Query<Feedback>()
             .Where(f => f.AppointmentId == item.AppointmentId).Take(1).ToListAsync();

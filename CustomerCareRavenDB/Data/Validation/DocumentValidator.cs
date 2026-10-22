@@ -1,3 +1,4 @@
+using CustomerCareRavenDB.Data;
 using CustomerCareRavenDB.Models;
 using Raven.Client.Documents.Session;
 
@@ -21,7 +22,7 @@ public class DocumentValidator : IDocumentValidator
         }
         else
         {
-            var customer = await session.LoadAsync<Customer>(appointment.CustomerId, cancellationToken);
+            var customer = await session.LoadFromCollectionAsync<Customer>(appointment.CustomerId, cancellationToken);
             if (customer == null)
             {
                 result.AddError($"Khách hàng với Id '{appointment.CustomerId}' không tồn tại trong hệ thống.");
@@ -34,7 +35,7 @@ public class DocumentValidator : IDocumentValidator
         }
         else
         {
-            var service = await session.LoadAsync<Service>(appointment.ServiceId, cancellationToken);
+            var service = await session.LoadFromCollectionAsync<Service>(appointment.ServiceId, cancellationToken);
             if (service == null)
             {
                 result.AddError($"Dịch vụ với Id '{appointment.ServiceId}' không tồn tại trong hệ thống.");
@@ -57,7 +58,7 @@ public class DocumentValidator : IDocumentValidator
             return result;
         }
 
-        var appointment = await session.LoadAsync<Appointment>(history.AppointmentId, cancellationToken);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(history.AppointmentId, cancellationToken);
         if (appointment == null)
         {
             result.AddError($"Lịch hẹn với Id '{history.AppointmentId}' không tồn tại trong hệ thống.");
@@ -75,7 +76,7 @@ public class DocumentValidator : IDocumentValidator
         }
         else
         {
-            var customer = await session.LoadAsync<Customer>(history.CustomerId, cancellationToken);
+            var customer = await session.LoadFromCollectionAsync<Customer>(history.CustomerId, cancellationToken);
             if (customer == null)
             {
                 result.AddError($"Khách hàng với Id '{history.CustomerId}' không tồn tại.");
@@ -93,7 +94,7 @@ public class DocumentValidator : IDocumentValidator
         }
         else
         {
-            var service = await session.LoadAsync<Service>(history.ServiceId, cancellationToken);
+            var service = await session.LoadFromCollectionAsync<Service>(history.ServiceId, cancellationToken);
             if (service == null)
             {
                 result.AddError($"Dịch vụ với Id '{history.ServiceId}' không tồn tại.");
@@ -107,7 +108,7 @@ public class DocumentValidator : IDocumentValidator
         }
         else
         {
-            var staff = await session.LoadAsync<Staff>(history.StaffId, cancellationToken);
+            var staff = await session.LoadFromCollectionAsync<Staff>(history.StaffId, cancellationToken);
             if (staff == null)
             {
                 result.AddError($"Nhân viên với Id '{history.StaffId}' không tồn tại trong hệ thống.");
@@ -137,7 +138,7 @@ public class DocumentValidator : IDocumentValidator
             return result;
         }
 
-        var appointment = await session.LoadAsync<Appointment>(feedback.AppointmentId, cancellationToken);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(feedback.AppointmentId, cancellationToken);
         if (appointment == null)
         {
             result.AddError($"Lịch hẹn với Id '{feedback.AppointmentId}' không tồn tại trong hệ thống.");
@@ -155,7 +156,7 @@ public class DocumentValidator : IDocumentValidator
         }
         else
         {
-            var customer = await session.LoadAsync<Customer>(feedback.CustomerId, cancellationToken);
+            var customer = await session.LoadFromCollectionAsync<Customer>(feedback.CustomerId, cancellationToken);
             if (customer == null)
             {
                 result.AddError($"Khách hàng với Id '{feedback.CustomerId}' không tồn tại.");
