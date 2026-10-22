@@ -39,13 +39,7 @@
 
                 <dt class="col-md-3">Giới tính</dt>
                 <dd class="col-md-9">
-                    @(Model.Gender switch
-                    {
-                        "Male" => "Nam",
-                        "Female" => "Nữ",
-                        "Other" => "Khác",
-                        _ => "Chưa cập nhật"
-                    })
+                    @CustomerGender.ToDisplay(Model.Gender)
                 </dd>
 
                 <dt class="col-md-3">Địa chỉ</dt>

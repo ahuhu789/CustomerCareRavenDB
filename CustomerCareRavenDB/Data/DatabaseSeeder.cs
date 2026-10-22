@@ -66,7 +66,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                     City = "TP. Hồ Chí Minh"
                 },
                 Birthday = new DateTime(1990, 5, 15, 0, 0, 0, DateTimeKind.Utc),
-                Gender = "Nam",
+                Gender = CustomerGender.Male,
                 CreatedAt = new DateTime(2026, 1, 10, 8, 0, 0, DateTimeKind.Utc),
                 Status = "Active"
             };
@@ -85,7 +85,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                     City = "TP. Hồ Chí Minh"
                 },
                 Birthday = new DateTime(1995, 11, 20, 0, 0, 0, DateTimeKind.Utc),
-                Gender = "Nữ",
+                Gender = CustomerGender.Female,
                 CreatedAt = new DateTime(2026, 1, 15, 9, 30, 0, DateTimeKind.Utc),
                 Status = "Active"
             };

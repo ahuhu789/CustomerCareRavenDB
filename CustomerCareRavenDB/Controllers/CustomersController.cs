@@ -65,7 +65,7 @@ public class CustomersController : Controller
 
         using var session = _context.OpenAsyncSession();
 
-        var customer = await session.LoadAsync<Customer>(id);
+        var customer = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (customer == null)
             return NotFound();
@@ -90,6 +90,7 @@ public class CustomersController : Controller
 
         // Id = null để RavenDB tự sinh Id có prefix collection (customers/1-A).
         customer.Id = null!;
+        customer.Gender = CustomerGender.Normalize(customer.Gender);
         customer.CreatedAt = DateTime.UtcNow;
 
         using var session = _context.OpenAsyncSession();
@@ -111,10 +112,13 @@ public class CustomersController : Controller
 
         using var session = _context.OpenAsyncSession();
 
-        var customer = await session.LoadAsync<Customer>(id);
+        var customer = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (customer == null)
             return NotFound();
+
+        // Dữ liệu cũ có thể lưu "Nam"/"Nữ": chuẩn hóa để form chọn đúng option (không lưu lại ở đây).
+        customer.Gender = CustomerGender.Normalize(customer.Gender);
 
         return View(customer);
     }
@@ -132,7 +136,7 @@ public class CustomersController : Controller
 
         using var session = _context.OpenAsyncSession();
 
-        var existing = await session.LoadAsync<Customer>(id);
+        var existing = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (existing == null)
             return NotFound();
@@ -142,7 +146,7 @@ public class CustomersController : Controller
         existing.Email = customer.Email;
         existing.Address = customer.Address ?? new CustomerAddress();
         existing.Birthday = customer.Birthday;
-        existing.Gender = customer.Gender;
+        existing.Gender = CustomerGender.Normalize(customer.Gender);
         existing.Status = customer.Status;
 
         await session.SaveChangesAsync();
@@ -161,7 +165,7 @@ public class CustomersController : Controller
 
         using var session = _context.OpenAsyncSession();
 
-        var customer = await session.LoadAsync<Customer>(id);
+        var customer = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (customer == null)
             return NotFound();
@@ -176,7 +180,7 @@ public class CustomersController : Controller
     {
         using var session = _context.OpenAsyncSession();
 
-        var customer = await session.LoadAsync<Customer>(id);
+        var customer = await session.LoadFromCollectionAsync<Customer>(id);
 
         if (customer == null)
             return NotFound();
