@@ -70,15 +70,15 @@ public class AppointmentsController : Controller
             return NotFound();
 
         using var session = _context.OpenAsyncSession();
-        var appointment = await session.LoadAsync<Appointment>(id);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(id);
 
         if (appointment == null)
             return NotFound();
 
-        ViewBag.Customer = await session.LoadAsync<Customer>(
+        ViewBag.Customer = await session.LoadFromCollectionAsync<Customer>(
             appointment.CustomerId);
 
-        ViewBag.Service = await session.LoadAsync<Service>(
+        ViewBag.Service = await session.LoadFromCollectionAsync<Service>(
             appointment.ServiceId);
 
         return View(appointment);
@@ -138,7 +138,7 @@ public class AppointmentsController : Controller
             return NotFound();
 
         using var session = _context.OpenAsyncSession();
-        var appointment = await session.LoadAsync<Appointment>(id);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(id);
 
         if (appointment == null)
             return NotFound();
@@ -164,7 +164,7 @@ public class AppointmentsController : Controller
         }
 
         using var session = _context.OpenAsyncSession();
-        var existing = await session.LoadAsync<Appointment>(id);
+        var existing = await session.LoadFromCollectionAsync<Appointment>(id);
 
         if (existing == null)
             return NotFound();
@@ -201,7 +201,7 @@ public class AppointmentsController : Controller
             return NotFound();
 
         using var session = _context.OpenAsyncSession();
-        var appointment = await session.LoadAsync<Appointment>(id);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(id);
 
         if (appointment == null)
             return NotFound();
@@ -215,7 +215,7 @@ public class AppointmentsController : Controller
     public async Task<IActionResult> DeleteConfirmed(string id)
     {
         using var session = _context.OpenAsyncSession();
-        var appointment = await session.LoadAsync<Appointment>(id);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(id);
 
         if (appointment == null)
             return NotFound();

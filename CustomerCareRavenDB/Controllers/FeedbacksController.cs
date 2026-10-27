@@ -35,9 +35,9 @@ public class FeedbacksController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<Feedback>(id);
+        var item = await session.LoadFromCollectionAsync<Feedback>(id);
         if (item == null) return NotFound();
-        ViewBag.CustomerName = (await session.LoadAsync<Customer>(item.CustomerId))?.FullName ?? item.CustomerId;
+        ViewBag.CustomerName = (await session.LoadFromCollectionAsync<Customer>(item.CustomerId))?.FullName ?? item.CustomerId;
         return View(item);
     }
 
@@ -58,7 +58,7 @@ public class FeedbacksController : Controller
             await LoadOptionsAsync(session);
             return View(input);
         }
-        var appointment = await session.LoadAsync<Appointment>(input.AppointmentId);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(input.AppointmentId);
         if (appointment == null)
         {
             ModelState.AddModelError(nameof(input.AppointmentId), "Lịch hẹn không tồn tại.");
@@ -92,7 +92,7 @@ public class FeedbacksController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<Feedback>(id);
+        var item = await session.LoadFromCollectionAsync<Feedback>(id);
         if (item == null) return NotFound();
         ViewBag.DocumentId = item.Id;
         await LoadOptionsAsync(session);
@@ -110,9 +110,9 @@ public class FeedbacksController : Controller
             await LoadOptionsAsync(session);
             return View(input);
         }
-        var item = await session.LoadAsync<Feedback>(id);
+        var item = await session.LoadFromCollectionAsync<Feedback>(id);
         if (item == null) return NotFound();
-        var appointment = await session.LoadAsync<Appointment>(input.AppointmentId);
+        var appointment = await session.LoadFromCollectionAsync<Appointment>(input.AppointmentId);
         if (appointment == null)
         {
             ModelState.AddModelError(nameof(input.AppointmentId), "Lịch hẹn không tồn tại.");
@@ -140,7 +140,7 @@ public class FeedbacksController : Controller
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
         using var session = _context.OpenAsyncSession();
-        var item = await session.LoadAsync<Feedback>(id);
+        var item = await session.LoadFromCollectionAsync<Feedback>(id);
         if (item == null) return NotFound();
         session.Delete(item);
         await session.SaveChangesAsync();
